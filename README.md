@@ -2,6 +2,9 @@
 
 A new Flutter project.
 
+##Copier le projet 
+git clone https://github.com/aymeric-nzore/ivox
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
