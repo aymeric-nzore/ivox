@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "675698248240",
+    "project_id": "ivox-89f14",
+    "storage_bucket": "ivox-89f14.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:675698248240:android:988415c60db0de4e64bbf5",
+        "android_client_info": {
+          "package_name": "com.example.ivox"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "675698248240-d9uunucpfrfoq0566qmfhhn4ookr5pk1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ivox",
+            "certificate_hash": "5913e6d23b86637d6915b8758e3e9587b226f337"
+          }
+        },
+        {
+          "client_id": "675698248240-51c3s742hbn43p87q2kbplcq2kfhrdlv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVCkGsiEwptbi7lQzNz3mWJJ7j19mkeT0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "675698248240-51c3s742hbn43p87q2kbplcq2kfhrdlv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "675698248240-rlphagcig0v0eetp1l6qkllfpqofaee5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ivox"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
