@@ -168,10 +168,7 @@ class _ProfilePageState extends State<ProfilePage> {
             content: const Text(
               "Autorisation refusée. Activez l'accès à la galerie dans les paramètres.",
             ),
-            action: SnackBarAction(
-              label: "Ouvrir",
-              onPressed: openAppSettings,
-            ),
+            action: SnackBarAction(label: "Ouvrir", onPressed: openAppSettings),
           ),
         );
       }
@@ -180,9 +177,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Permission galerie non accordée"),
-        ),
+        const SnackBar(content: Text("Permission galerie non accordée")),
       );
     }
     return false;
@@ -199,10 +194,7 @@ class _ProfilePageState extends State<ProfilePage> {
             content: const Text(
               "Autorisation caméra refusée. Activez l'accès dans les paramètres.",
             ),
-            action: SnackBarAction(
-              label: "Ouvrir",
-              onPressed: openAppSettings,
-            ),
+            action: SnackBarAction(label: "Ouvrir", onPressed: openAppSettings),
           ),
         );
       }
@@ -211,9 +203,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Permission caméra non accordée"),
-        ),
+        const SnackBar(content: Text("Permission caméra non accordée")),
       );
     }
     return false;
@@ -236,10 +226,7 @@ class _ProfilePageState extends State<ProfilePage> {
         leading: Text(""),
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: _handleLogout,
-            icon: Icon(Icons.logout),
-          ),
+          IconButton(onPressed: _handleLogout, icon: Icon(Icons.logout)),
         ],
       ),
       body: user == null
@@ -254,14 +241,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 final data = snapshot.data?.data();
                 final username =
                     (data != null ? data['username'] as String? : null) ??
-                        user.displayName ??
-                        'Utilisateur';
+                    user.displayName ??
+                    'Utilisateur';
                 final email =
                     (data != null ? data['email'] as String? : null) ??
-                        user.email ??
-                        '';
-                final photoUrl =
-                    data != null ? data['photoUrl'] as String? : null;
+                    user.email ??
+                    '';
+                final photoUrl = data != null
+                    ? data['photoUrl'] as String?
+                    : null;
 
                 if (!_isEditingName && _usernameController.text != username) {
                   _usernameController.text = username;
@@ -276,9 +264,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         children: [
                           CircleAvatar(
                             radius: 48,
-                            backgroundColor: colorScheme.surfaceContainerHighest,
-                            backgroundImage:
-                                photoUrl != null ? NetworkImage(photoUrl) : null,
+                            backgroundColor:
+                                colorScheme.surfaceContainerHighest,
+                            backgroundImage: photoUrl != null
+                                ? NetworkImage(photoUrl)
+                                : null,
                             child: photoUrl == null
                                 ? Icon(
                                     Icons.person,
@@ -291,7 +281,9 @@ class _ProfilePageState extends State<ProfilePage> {
                             right: 2,
                             bottom: 2,
                             child: GestureDetector(
-                              onTap: _isUploadingPhoto ? null : _pickProfileImage,
+                              onTap: _isUploadingPhoto
+                                  ? null
+                                  : _pickProfileImage,
                               child: Container(
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
@@ -334,8 +326,10 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.person_outline,
-                                    color: colorScheme.primary),
+                                Icon(
+                                  Icons.person_outline,
+                                  color: colorScheme.primary,
+                                ),
                                 const SizedBox(width: 8),
                                 const Text(
                                   "Nom d'utilisateur",
@@ -369,14 +363,18 @@ class _ProfilePageState extends State<ProfilePage> {
                                     onPressed: _isSavingName
                                         ? null
                                         : () {
-                                            setState(() => _isEditingName = false);
+                                            setState(
+                                              () => _isEditingName = false,
+                                            );
                                             _usernameController.text = username;
                                           },
                                     child: const Text("Annuler"),
                                   ),
                                   const SizedBox(width: 8),
                                   ElevatedButton(
-                                    onPressed: _isSavingName ? null : _saveUsername,
+                                    onPressed: _isSavingName
+                                        ? null
+                                        : _saveUsername,
                                     child: _isSavingName
                                         ? const SizedBox(
                                             width: 16,
@@ -400,8 +398,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             const SizedBox(height: 12),
                             Row(
                               children: [
-                                Icon(Icons.email_outlined,
-                                    color: colorScheme.primary),
+                                Icon(
+                                  Icons.email_outlined,
+                                  color: colorScheme.primary,
+                                ),
                                 const SizedBox(width: 8),
                                 const Text(
                                   "Email",
@@ -431,8 +431,10 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.color_lens_outlined,
-                                    color: colorScheme.primary),
+                                Icon(
+                                  Icons.color_lens_outlined,
+                                  color: colorScheme.primary,
+                                ),
                                 const SizedBox(width: 8),
                                 const Text(
                                   "Thème",
@@ -481,16 +483,21 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
-                    Spacer(),
+                    SizedBox(height: 24,),
                     Row(
+                      spacing: 6,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Text("Devenir un"),
-                        Text("Créateur ?" , style: TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold
-                        ),) ,
+                        Text(
+                          "Créateur ?",
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
-                    )
+                    ),
                   ],
                 );
               },

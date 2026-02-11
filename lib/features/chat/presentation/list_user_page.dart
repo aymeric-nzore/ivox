@@ -3,6 +3,7 @@ import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/chat/presentation/chat_page.dart';
 import 'package:ivox/features/chat/services/chat_services.dart';
 import 'package:ivox/features/chat/utils/user_tile.dart';
+import 'package:ivox/shared/utils/my_drawer_tile.dart';
 
 class ListUserPage extends StatefulWidget {
   const ListUserPage({super.key});
@@ -17,7 +18,35 @@ class _ListUserPageState extends State<ListUserPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Chat"), centerTitle: true, leading: Text("")),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            DrawerHeader(
+              child: Row(
+                spacing: 15,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [Icon(Icons.message, size: 32), Text("CHAT")],
+              ),
+            ),
+            MyDrawerTile(
+              icon: Icon(Icons.list_alt),
+              title: "Listes d'utilisateurs",
+              onTap: (){},
+            ),
+            MyDrawerTile(
+              icon: Icon(Icons.person_sharp),
+              title: "Amis",
+              onTap: (){},
+            ),
+            MyDrawerTile(
+              icon: Icon(Icons.block),
+              title: "Utilisateurs bloqués",
+              onTap: (){},
+            ),
+          ],
+        ),
+      ),
+      appBar: AppBar(title: Text("Chat"), centerTitle: true),
       body: StreamBuilder(
         stream: _chatService.getUserStream(),
         builder: (context, snapshot) {

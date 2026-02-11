@@ -39,6 +39,9 @@ class AuthService {
       'username': username,
       'email': email,
       'timestamp': Timestamp.now(),
+      'level': 1,
+      'xp': 0,
+      'totalXp': 0,
     });
     return userCredential;
   }
@@ -59,7 +62,7 @@ class AuthService {
   Future<UserCredential> signInWithGoogle() async {
     // Get the GoogleSignIn instance (singleton in v7.x)
     final GoogleSignIn googleSignIn = GoogleSignIn.instance;
-    
+
     // Trigger the authentication flow (replaces signIn() in v7.x)
     final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
 
@@ -67,12 +70,9 @@ class AuthService {
     final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
     // Get access token from authorization client for Firebase
-    final GoogleSignInClientAuthorization? authorization =
-        
-        await googleUser.authorizationClient.authorizationForScopes([
-      'email',
-      'profile',
-    ]);
+    final GoogleSignInClientAuthorization? authorization = await googleUser
+        .authorizationClient
+        .authorizationForScopes(['email', 'profile']);
 
     // Créer les credentials
     final credential = GoogleAuthProvider.credential(
