@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:ivox/features/chat/models/message_model.dart';
 
 class ChatServices {
@@ -45,6 +47,46 @@ class ChatServices {
         .doc(chatRoomID)
         .collection("message")
         .add(newMessage.toMap());
+
+    // Envoyer la notification via FCM server
+    await _sendNotificationToServer(receiverID, currentUserEmail, message);
+  }
+
+  //Envoyer une notification via le serveur FCM
+  Future<void> _sendNotificationToServer(
+    String receiverID,
+    String senderEmail,
+    String message,
+  ) async {
+    try {
+      // Récupérer le token FCM du destinataire depuis Firestore
+      final receiverDoc =
+          await _firestore.collection('users').doc(receiverID).get();
+      final fcmToken = receiverDoc.data()?['fcmToken'] as String?;
+
+      if (fcmToken == null) {
+        print('Token FCM non disponible pour le destinataire');
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse('https://fcm-server-b961.onrender.com/send'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'token': fcmToken,
+          'title': 'Nouveau message de $senderEmail',
+          'body': message,
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        print('Notification envoyée avec succès');
+      } else {
+        print('Erreur FCM: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Erreur lors de l\'envoi de la notification: $e');
+    }
   }
 
   //get les messages

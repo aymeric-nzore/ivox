@@ -10,7 +10,7 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedSplashScreen(
       curve: Curves.fastOutSlowIn,
-      duration: 3000,
+      duration: 2500,
       splash: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

@@ -1,15 +1,27 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ivox/core/theme/theme_provider.dart';
 import 'package:ivox/features/auth/presentation/login_page.dart';
 import 'package:ivox/features/auth/services/auth_service.dart';
+import 'package:ivox/features/dictionnaire/presentation/dictionnaire_page.dart';
+import 'package:ivox/features/notifications/notification_service.dart';
+import 'package:ivox/shared/widgets/main_bottom_nav_bar.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  final int currentIndex;
+  final ValueChanged<int> onTabSelected;
+
+  const ProfilePage({
+    super.key,
+    required this.currentIndex,
+    required this.onTabSelected,
+  });
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -17,11 +29,14 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _authService = AuthService();
+  final _notificationService = NotificationService();
   final _usernameController = TextEditingController();
   final _imagePicker = ImagePicker();
   bool _isEditingName = false;
   bool _isSavingName = false;
   bool _isUploadingPhoto = false;
+  bool _notificationsEnabled = true;
+  bool _isTogglingNotifications = false;
 
   Future<void> _handleLogout() async {
     try {
@@ -209,6 +224,79 @@ class _ProfilePageState extends State<ProfilePage> {
     return false;
   }
 
+  Future<void> _toggleNotifications(bool value) async {
+    if (_isTogglingNotifications) return;
+    final previousValue = _notificationsEnabled;
+    setState(() {
+      _isTogglingNotifications = true;
+      _notificationsEnabled = value;
+    });
+    if (value) {
+      // Android: demander avec permission_handler
+      final status = await Permission.notification.status;
+      final requestStatus = status.isGranted
+          ? status
+          : await Permission.notification.request();
+      
+      // iOS & Android: demander avec Firebase
+      await _notificationService.firebaseMessaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+
+      if (!requestStatus.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                "Autorisation notifications refusée. Activez-la dans les paramètres.",
+              ),
+            ),
+          );
+        }
+        await openAppSettings();
+        setState(() {
+          _notificationsEnabled = previousValue;
+          _isTogglingNotifications = false;
+        });
+        return;
+      }
+    }
+
+    try {
+      if (value) {
+        await _notificationService.saveUserFcmToken();
+      } else {
+        await _notificationService.clearUserFcmToken();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Erreur notifications: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      if (mounted) {
+        setState(() {
+          _notificationsEnabled = previousValue;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isTogglingNotifications = false;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     _usernameController.dispose();
@@ -228,6 +316,10 @@ class _ProfilePageState extends State<ProfilePage> {
         actions: [
           IconButton(onPressed: _handleLogout, icon: Icon(Icons.logout)),
         ],
+      ),
+      bottomNavigationBar: MainBottomNavBar(
+        currentIndex: widget.currentIndex,
+        onTap: widget.onTabSelected,
       ),
       body: user == null
           ? const Center(child: Text("Utilisateur non connecté"))
@@ -415,7 +507,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     Card(
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -483,7 +575,71 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 24,),
+                    SizedBox(height: 8),
+                    Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: colorScheme.outline.withOpacity(0.2)
+                        )
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Text("Activer les Notifications"),
+                            const Spacer(),
+                            CupertinoSwitch(
+                              
+                              value: _notificationsEnabled,
+                              onChanged: _isTogglingNotifications
+                                  ? null
+                                  : _toggleNotifications,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
+                    SizedBox(height: 8),
+                    Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DictionaryScreen(),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                spacing: 8,
+                                children: [
+                                  Icon(
+                                    FontAwesomeIcons.paperclip,
+                                    color: colorScheme.primary,
+                                  ),
+                                  Text("Dictionnaire"),
+                                ],
+                              ),
+                              Icon(Icons.arrow_right_sharp),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 24),
                     Row(
                       spacing: 6,
                       mainAxisAlignment: MainAxisAlignment.start,

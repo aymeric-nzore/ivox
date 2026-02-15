@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ivox/features/auth/presentation/login_page.dart';
 import 'package:ivox/features/auth/services/auth_service.dart';
+import 'package:ivox/features/notifications/notification_service.dart';
 import 'package:ivox/main_page.dart';
 import 'package:ivox/shared/utils/my_button.dart';
 import 'package:ivox/shared/utils/my_icon_tile.dart';
@@ -55,6 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
         _passwordController.text.trim(),
         _usernameController.text.trim(),
       );
+      await NotificationService().saveUserFcmToken();
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -96,6 +98,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       await _authService.signInWithGoogle();
+      await NotificationService().saveUserFcmToken();
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -118,6 +121,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       await _authService.signInWithFacebook();
+      await NotificationService().saveUserFcmToken();
       if (mounted) {
         Navigator.pushReplacement(
           context,

@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/lessons/utils/grid_courses.dart';
-import 'package:ivox/features/lessons/utils/listview_quizz.dart';
+import 'package:ivox/features/quizz/listview_quizz.dart';
+import 'package:ivox/features/quizz/quizz_page.dart';
+import 'package:ivox/shared/widgets/main_bottom_nav_bar.dart';
+import 'package:lottie/lottie.dart';
 
 class LessonsPage extends StatefulWidget {
-  const LessonsPage({super.key});
+  final int currentIndex;
+  final ValueChanged<int> onTabSelected;
+
+  const LessonsPage({
+    super.key,
+    required this.currentIndex,
+    required this.onTabSelected,
+  });
 
   @override
   State<LessonsPage> createState() => _LessonsPageState();
@@ -41,32 +50,28 @@ class _LessonsPageState extends State<LessonsPage> {
   ];
   final List<ListviewQuizz> quizz_data = [
     ListviewQuizz(
-      imagePath: "assets/images/Studying-cuate.svg",
+      imagePath: "assets/lotties/Quiz mode.json",
       title: "Quiz 1",
       description: "Basique",
-      times: "5 min",
-      bgColor: Colors.blue,
+      times: "15 min",
+      bgColor: Colors.blue.shade400,
+      starCompt: 1,
     ),
     ListviewQuizz(
-      imagePath: "assets/images/Studying-cuate.svg",
+      imagePath: "assets/lotties/Books stack.json",
       title: "Quiz 2",
       description: "Moyen",
-      times: "10 min",
-      bgColor: Colors.orange,
+      times: "20 min",
+      bgColor: Colors.cyan.shade300,
+      starCompt: 2,
     ),
     ListviewQuizz(
-      imagePath: "assets/images/Studying-cuate.svg",
+      imagePath: "assets/lotties/STUDENT.json",
       title: "Quiz 3",
       description: "Avancé",
-      times: "15 min",
-      bgColor: Colors.purple,
-    ),
-    ListviewQuizz(
-      imagePath: "assets/images/Studying-cuate.svg",
-      title: "Quiz 4",
-      description: "Expert",
-      times: "20 min",
-      bgColor: Colors.red,
+      times: "25 min",
+      bgColor: Colors.teal.shade300,
+      starCompt: 3,
     ),
   ];
   @override
@@ -78,80 +83,104 @@ class _LessonsPageState extends State<LessonsPage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 15.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  "Lv 25",
-                  style: TextStyle(
-                    color: Colors.grey[500],
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Row(
+          StreamBuilder(
+            stream: _authService.userDocStream(),
+            builder: (context, snapshot) {
+              final data = snapshot.data?.data();
+              final level = data?["level"] as int? ?? 1;
+              final xp = data?["xp"] as int? ?? 0;
+              int requiredXp = 100 + (level * 25);
+              double progress = xp / requiredXp;
+
+              double maxWidth = 110;
+              double progressWidth = maxWidth * progress.clamp(0.0, 1.0);
+              return Padding(
+                padding: const EdgeInsets.only(right: 15.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Stack(
+                    Row(
                       children: [
-                        SizedBox(
-                          height: 7,
-                          width: 110,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              color: Colors.grey[300],
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 7,
-                          width: 90,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              color: Colors.green,
-                            ),
+                        Text(
+                          "Lv $level",
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(width: 8),
-                    Icon(
-                      Icons.auto_awesome,
-                      size: 16,
-                      color: Colors.green[300],
+                    Row(
+                      children: [
+                        Stack(
+                          children: [
+                            SizedBox(
+                              height: 7,
+                              width: maxWidth,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  color: Colors.grey[300],
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 7,
+                              width: progressWidth,
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 400),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(width: 8),
+                        Icon(
+                          Icons.auto_awesome,
+                          size: 16,
+                          color: Colors.green[300],
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ],
         leading: Padding(
-          padding: const EdgeInsets.only(left: 20.0,),
+          padding: const EdgeInsets.only(left: 20.0),
           child: StreamBuilder(
             stream: _authService.userDocStream(),
             builder: (context, snapshot) {
-              final data = snapshot.data?.data();
-              final photoUrl = data?["photoUrl"] as String;
+              if (!snapshot.hasData) {
+                return const CircleAvatar(child: Icon(Icons.person));
+              }
+
+              final data = snapshot.data!.data();
+              final photoUrl = data?["photoUrl"] as String?;
+
               return CircleAvatar(
-                backgroundImage: photoUrl != null && photoUrl.isNotEmpty
-                    ? NetworkImage(photoUrl )
+                backgroundImage: (photoUrl != null && photoUrl.isNotEmpty)
+                    ? NetworkImage(photoUrl)
                     : null,
-                child: photoUrl == null || photoUrl.isEmpty
-                    ? Icon(Icons.person)
+                child: (photoUrl == null || photoUrl.isEmpty)
+                    ? const Icon(Icons.person)
                     : null,
               );
             },
           ),
         ),
+
         title: StreamBuilder(
           stream: _authService.userDocStream(),
           builder: (context, snapshot) {
             final data = snapshot.data?.data();
-            final username = data?["username"] as String;
+            final username = (data?["username"] as String?) ?? "";
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -174,18 +203,20 @@ class _LessonsPageState extends State<LessonsPage> {
                     ),
                   ],
                 ),
-                Text("Bienvenue 👋" ,style: TextStyle(
-                  fontSize: 14
-                ),),
+                Text("Bienvenue 👋", style: TextStyle(fontSize: 14)),
               ],
             );
           },
         ),
       ),
+      bottomNavigationBar: MainBottomNavBar(
+        currentIndex: widget.currentIndex,
+        onTap: widget.onTabSelected,
+      ),
       body: CustomScrollView(
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
             sliver: SliverToBoxAdapter(
               child: Column(
                 children: [
@@ -217,7 +248,7 @@ class _LessonsPageState extends State<LessonsPage> {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.only(left: 20, bottom: 15),
+            padding: const EdgeInsets.only(left: 20, bottom: 10),
             sliver: SliverToBoxAdapter(
               child: Text(
                 "Leçons",
@@ -323,7 +354,14 @@ class _LessonsPageState extends State<LessonsPage> {
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (context, index) {
                         return GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => QuizzPage(index: index),
+                              ),
+                            );
+                          },
                           child: Container(
                             margin: EdgeInsets.symmetric(horizontal: 8),
                             width: 270,
@@ -343,10 +381,11 @@ class _LessonsPageState extends State<LessonsPage> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                SvgPicture.asset(
+                                LottieBuilder.asset(
                                   quizz_data[index].imagePath,
-                                  height: 240,
+                                  height: 220,
                                   alignment: Alignment.center,
+                                  
                                 ),
                                 SizedBox(height: 8),
                                 Text(
@@ -359,6 +398,15 @@ class _LessonsPageState extends State<LessonsPage> {
                                   textAlign: TextAlign.center,
                                 ),
                                 SizedBox(height: 4),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  spacing: 4,
+                                  children: List.generate(
+                                    quizz_data[index].starCompt,
+                                    (index) =>
+                                        Icon(Icons.star, color: Colors.amber),
+                                  ),
+                                ),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 20.0,

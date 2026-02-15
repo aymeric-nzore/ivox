@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:popover/popover.dart';
 
 class UserTile extends StatelessWidget {
   final String text;
@@ -17,7 +18,7 @@ class UserTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(12),
         margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest,
@@ -44,7 +45,64 @@ class UserTile extends StatelessWidget {
               ),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () => showPopover(
+                height: 120,
+                width: 220,
+                direction: PopoverDirection.bottom,
+                context: context,
+                bodyBuilder: (context) => Column(
+                  children: [
+                    GestureDetector(
+                      child: Container(
+                        color: Colors.blue.shade200,
+                        height: 40,
+                        width: double.infinity,
+                        child: Row(
+                          spacing: 6,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SizedBox(width: 6),
+                            Icon(Icons.person_sharp),
+                            Text("Ajoutez en amis"),
+                          ],
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      child: Container(
+                        color: Colors.red.shade400,
+                        height: 40,
+                        width: double.infinity,
+                        child: Row(
+                          spacing: 6,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SizedBox(width: 6),
+                            Icon(Icons.block),
+                            Text("Bloquez cet utilisateur"),
+                          ],
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      child: Container(
+                        color: const Color.fromARGB(255, 251, 173, 56),
+                        height: 40,
+                        width: double.infinity,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          spacing: 6,
+                          children: [
+                            SizedBox(width: 6),
+                            Icon(Icons.report),
+                            Text("Signalez cet utilisateur"),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               icon: Icon(Icons.more_vert, color: colorScheme.onSurfaceVariant),
             ),
           ],

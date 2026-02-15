@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:ivox/features/chat/presentation/list_user_page.dart';
 import 'package:ivox/features/leaderboard/leaderboard_page.dart';
 import 'package:ivox/features/lessons/presentation/lessons_page.dart';
 import 'package:ivox/features/profile/presentation/profile_page.dart';
-import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
+import 'package:ivox/shared/utils/responsive.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -14,74 +13,87 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  final List<Widget> _pages = [
-    LessonsPage(),
-    LeaderboardPage(),
-    ListUserPage(),
-    ProfilePage(),
-  ];
   int _currentIndex = 0;
+
+  void _handleTabSelected(int index) {
+    if (index == _currentIndex) return;
+    setState(() => _currentIndex = index);
+  }
+
+  Widget _buildPage() {
+    switch (_currentIndex) {
+      case 0:
+        return LessonsPage(
+          currentIndex: _currentIndex,
+          onTabSelected: _handleTabSelected,
+        );
+      case 1:
+        return LeaderboardPage(
+          currentIndex: _currentIndex,
+          onTabSelected: _handleTabSelected,
+        );
+      case 2:
+        return ListUserPage(
+          currentIndex: _currentIndex,
+          onTabSelected: _handleTabSelected,
+        );
+      case 3:
+        return ProfilePage(
+          currentIndex: _currentIndex,
+          onTabSelected: _handleTabSelected,
+        );
+      default:
+        return LessonsPage(
+          currentIndex: _currentIndex,
+          onTabSelected: _handleTabSelected,
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (Responsive.isMobileOrTablet(context)) {
+      return _buildMobileLayout();
+    } else {
+      return _buildDesktopLayout(context);
+    }
+  }
+
+  Widget _buildMobileLayout() {
+    return _buildPage();
+  }
+
+  Widget _buildDesktopLayout(BuildContext context) {
+    final navItems = [
+      ('Leçons', Icons.book),
+      ('Classement', Icons.leaderboard),
+      ('Chat', Icons.message),
+      ('Profil', Icons.person),
+    ];
+
     return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          decoration: BoxDecoration(
-            color: isDark
-                ? colorScheme.surfaceContainerHighest.withOpacity(0.95)
-                : colorScheme.surface,
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.12),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(30),
-            child: SalomonBottomBar(
-              margin: const EdgeInsets.all(12),
-              duration: const Duration(milliseconds: 600),
-              currentIndex: _currentIndex,
-              onTap: (index) {
-                setState(() => _currentIndex = index);
-              },
-              items: [
-                SalomonBottomBarItem(
-                  icon: Icon(Icons.book),
-                  title: Text("Leçons"),
-                  selectedColor: Colors.amber,
-                ),
-                SalomonBottomBarItem(
-                  icon: SvgPicture.asset(
-                    isDark
-                        ? "assets/icons/trophy-line_white.svg"
-                        : "assets/icons/trophy-line.svg",
+      body: Row(
+        children: [
+          // Sidebar
+          NavigationRail(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: _handleTabSelected,
+            extended: MediaQuery.of(context).size.width > 1200,
+            minExtendedWidth: 250,
+            destinations: navItems
+                .map(
+                  (item) => NavigationRailDestination(
+                    icon: Icon(item.$2),
+                    label: Text(item.$1),
                   ),
-                  title: Text("Leaderboard"),
-                  selectedColor: Colors.amber,
-                  activeIcon: SvgPicture.asset("assets/icons/trophy-fill.svg"),
-                ),
-                SalomonBottomBarItem(
-                  icon: Icon(Icons.message_outlined),
-                  title: Text("Chat"),
-                  selectedColor: Colors.amber,
-                ),
-                SalomonBottomBarItem(
-                  icon: Icon(Icons.person),
-                  title: Text("Profile"),
-                  selectedColor: Colors.amber,
-                ),
-              ],
-            ),
+                )
+                .toList(),
           ),
-        ),
+          // Content
+          Expanded(
+            child: _buildPage(),
+          ),
+        ],
       ),
     );
   }

@@ -4,9 +4,18 @@ import 'package:ivox/features/chat/presentation/chat_page.dart';
 import 'package:ivox/features/chat/services/chat_services.dart';
 import 'package:ivox/features/chat/utils/user_tile.dart';
 import 'package:ivox/shared/utils/my_drawer_tile.dart';
+import 'package:ivox/shared/widgets/main_bottom_nav_bar.dart';
+import 'package:ivox/shared/utils/responsive.dart';
 
 class ListUserPage extends StatefulWidget {
-  const ListUserPage({super.key});
+  final int currentIndex;
+  final ValueChanged<int> onTabSelected;
+
+  const ListUserPage({
+    super.key,
+    required this.currentIndex,
+    required this.onTabSelected,
+  });
 
   @override
   State<ListUserPage> createState() => _ListUserPageState();
@@ -15,54 +24,111 @@ class ListUserPage extends StatefulWidget {
 class _ListUserPageState extends State<ListUserPage> {
   final _authService = AuthService();
   final _chatService = ChatServices();
+  bool _isDrawerOpened = false;
+
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobileOrTablet(context);
+
     return Scaffold(
-      drawer: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              child: Row(
-                spacing: 15,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [Icon(Icons.message, size: 32), Text("CHAT")],
+      onDrawerChanged: (isOpened) {
+        setState(() {
+          _isDrawerOpened = isOpened;
+        });
+      },
+      drawer: isMobile
+          ? Drawer(
+              child: Column(
+                children: [
+                  DrawerHeader(
+                    child: Row(
+                      spacing: 15,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [Icon(Icons.message, size: 32), Text("CHAT")],
+                    ),
+                  ),
+                  MyDrawerTile(
+                    icon: Icon(Icons.list_alt),
+                    title: "Listes d'utilisateurs",
+                    onTap: () {},
+                  ),
+                  MyDrawerTile(
+                    icon: Icon(Icons.person_sharp),
+                    title: "Amis",
+                    onTap: () {},
+                  ),
+                  MyDrawerTile(
+                    icon: Icon(Icons.block),
+                    title: "Utilisateurs bloqués",
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            )
+          : null,
+      bottomNavigationBar: isMobile && !_isDrawerOpened
+          ? MainBottomNavBar(
+              currentIndex: widget.currentIndex,
+              onTap: widget.onTabSelected,
+            )
+          : null,
+      appBar: AppBar(
+        title: Text("Chat"),
+        centerTitle: true,
+      ),
+      body: Row(
+        children: [
+          // Sidebar sur desktop
+          if (!isMobile)
+            Container(
+              width: 250,
+              decoration: BoxDecoration(
+                border: Border(
+                  right: BorderSide(
+                    color: Colors.grey.withOpacity(0.2),
+                  ),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      "Messages",
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildUsersList(),
+                  ),
+                ],
               ),
             ),
-            MyDrawerTile(
-              icon: Icon(Icons.list_alt),
-              title: "Listes d'utilisateurs",
-              onTap: (){},
-            ),
-            MyDrawerTile(
-              icon: Icon(Icons.person_sharp),
-              title: "Amis",
-              onTap: (){},
-            ),
-            MyDrawerTile(
-              icon: Icon(Icons.block),
-              title: "Utilisateurs bloqués",
-              onTap: (){},
-            ),
-          ],
-        ),
+          // Contenu principal
+          Expanded(
+            child: _buildUsersList(),
+          ),
+        ],
       ),
-      appBar: AppBar(title: Text("Chat"), centerTitle: true),
-      body: StreamBuilder(
-        stream: _chatService.getUserStream(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Text("Error");
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
-          }
-          return ListView(
-            children: snapshot.data!
-                .map((userData) => _buildUserList(userData, context))
-                .toList(),
-          );
-        },
-      ),
+    );
+  }
+
+  Widget _buildUsersList() {
+    return StreamBuilder(
+      stream: _chatService.getUserStream(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text("Error");
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+        return ListView(
+          children: snapshot.data!
+              .map((userData) => _buildUserList(userData, context))
+              .toList(),
+        );
+      },
     );
   }
 

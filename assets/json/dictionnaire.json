@@ -1,0 +1,1874 @@
+{
+  "A": [
+    {
+      "mot": "a be to…",
+      "traduction": "avoir l'habitude",
+      "alternative": [],
+      "exemple": "a be to ka baro kɛ ni cosi mɔgɔ dow ye ninsɔndiya la.",
+      "traduction_exemple": "Il a l'habitude de causer joyeusement avec les autres hommes au kiosque."
+    },
+    {
+      "mot": "àyiwa",
+      "traduction": "eh bien",
+      "alternative": ["awa"],
+      "exemple": "ayiwa, n be taga.",
+      "traduction_exemple": "Bon, je m'en vais."
+    },
+    {
+      "mot": "ábada",
+      "traduction": "jamais",
+      "alternative": [],
+      "exemple": "a tɛ koɲuman kɛ abada.",
+      "traduction_exemple": "Il ne fait jamais quelque chose de bien."
+    },
+    {
+      "mot": "ádamaden",
+      "traduction": "être humain",
+      "alternative": ["hadamaden"],
+      "exemple": "adamaden kɔni tɛ foyi ye.",
+      "traduction_exemple": "L'homme n'est rien."
+    },
+    {
+      "mot": "Ala",
+      "traduction": "Dieu",
+      "alternative": [],
+      "exemple": "Ala ye kelen pe ye.",
+      "traduction_exemple": "Dieu est unique."
+    },
+    {
+      "mot": "àlamisa",
+      "traduction": "jeudi",
+      "alternative": [],
+      "exemple": "Tuma caman na, furu caman bɛ siri alamisalon.",
+      "traduction_exemple": "Les mariages ont lieu souvent le jeudi."
+    },
+    {
+      "mot": "àni",
+      "traduction": "et",
+      "alternative": [],
+      "exemple": "a ka jɛgɛ ani foronto san.",
+      "traduction_exemple": "Il a acheté du poisson et du piment."
+    },
+    {
+      "mot": "áraba",
+      "traduction": "mercredi",
+      "alternative": [],
+      "exemple": "Áraba kan ka di wali ye.",
+      "traduction_exemple": "Mercredi est un jour important."
+    },
+    {
+      "mot": "arajo",
+      "traduction": "radio",
+      "alternative": [],
+      "exemple": "a be arajo lamɛn na.",
+      "traduction_exemple": "Il écoute la radio."
+    },
+    {
+      "mot": "awirilikalo",
+      "traduction": "avril",
+      "alternative": [],
+      "exemple": "Awirilikalo ka baara diya ye.",
+      "traduction_exemple": "Avril est une bonne saison pour travailler."
+    }
+  ],
+  "B": [
+    {
+      "mot": "b'a kɛ…",
+      "traduction": "passer le temps",
+      "alternative": [],
+      "exemple": "denmisenw b'a kɛ+tolonkɛ ye sira fɛ",
+      "traduction_exemple": "les enfants passent le temps à jouer sur la route."
+    },
+    {
+      "mot": "ba",
+      "traduction": "grand",
+      "alternative": [],
+      "exemple": "sanjiba ben na.",
+      "traduction_exemple": "la grande pluie est tombée."
+    },
+    {
+      "mot": "báara",
+      "traduction": "travail",
+      "alternative": [],
+      "exemple": "baara be dɔgɔ dɛ.",
+      "traduction_exemple": "Le travail est difficile."
+    },
+    {
+      "mot": "bála",
+      "traduction": "balafon",
+      "alternative": ["balan"],
+      "exemple": "balafɔla ye sugu fila ye.",
+      "traduction_exemple": "Il y a deux sortes de joueurs de xylophone."
+    },
+    {
+      "mot": "bì",
+      "traduction": "aujourd'hui",
+      "alternative": [],
+      "exemple": "bi ye tarata ye.",
+      "traduction_exemple": "Aujourd'hui c'est mardi."
+    },
+    {
+      "mot": "bibi",
+      "traduction": "termite ailé",
+      "alternative": [],
+      "exemple": "Fatimata be bibi ni citumu feere.",
+      "traduction_exemple": "Fatimata vend des termites et des chenilles."
+    },
+    {
+      "mot": "bin",
+      "traduction": "herbe",
+      "alternative": [],
+      "exemple": "a k'i la bin na.",
+      "traduction_exemple": "Il s'est couché dans l'herbe."
+    },
+    {
+      "mot": "blà",
+      "traduction": "poser, mettre",
+      "alternative": ["bila"],
+      "exemple": "o bila gɛrɛ fɛ.",
+      "traduction_exemple": "Laisse ça de côté."
+    },
+    {
+      "mot": "bònya",
+      "traduction": "respect, grandeur",
+      "alternative": [],
+      "exemple": "mɔgɔ ka kan k'a bangebagaw bonya.",
+      "traduction_exemple": "On doit respecter ses parents."
+    },
+    {
+      "mot": "bɔ̀",
+      "traduction": "sortir",
+      "alternative": [],
+      "exemple": "a bɔra dugu la ka taga sogo ɲini.",
+      "traduction_exemple": "Il est sorti de la ville pour aller chasser."
+    }
+  ],
+  "C": [
+    {
+      "mot": "cá",
+      "traduction": "beaucoup",
+      "alternative": ["ca"],
+      "exemple": "mɔgɔw tun ka ca Abijan.",
+      "traduction_exemple": "Il y avait beaucoup de gens à Abidjan."
+    },
+    {
+      "mot": "cáman",
+      "traduction": "beaucoup",
+      "alternative": ["caaman"],
+      "exemple": "foro caaman kɔni b'a fɛ han!",
+      "traduction_exemple": "Il a beaucoup de chance, hein!"
+    },
+    {
+      "mot": "cé",
+      "traduction": "dire",
+      "alternative": [],
+      "exemple": "ce dɔn kama ye.",
+      "traduction_exemple": "C'est ce que j'ai dit."
+    },
+    {
+      "mot": "cɛ́",
+      "traduction": "homme",
+      "alternative": [],
+      "exemple": "cɛ nin tɔgɔ ye Ali.",
+      "traduction_exemple": "Cet homme s'appelle Ali."
+    },
+    {
+      "mot": "cɛ̀",
+      "traduction": "garçon",
+      "alternative": [],
+      "exemple": "cɛnin ye den ye.",
+      "traduction_exemple": "C'est un petit garçon."
+    },
+    {
+      "mot": "citumu",
+      "traduction": "chenille",
+      "alternative": [],
+      "exemple": "Fatimata be bibi ni citumu feere.",
+      "traduction_exemple": "Fatimata vend des termites et des chenilles."
+    },
+    {
+      "mot": "cogi",
+      "traduction": "cuisiner",
+      "alternative": [],
+      "exemple": "muso be tobili kɛ.",
+      "traduction_exemple": "La femme cuisine."
+    },
+    {
+      "mot": "cógo",
+      "traduction": "manière",
+      "alternative": [],
+      "exemple": "i be taga cogo di?",
+      "traduction_exemple": "Comment iras-tu?"
+    },
+    {
+      "mot": "cɔ̀ri",
+      "traduction": "serrer",
+      "alternative": [],
+      "exemple": "a ka den cɔri.",
+      "traduction_exemple": "Il a serré l'enfant."
+    },
+    {
+      "mot": "cùn",
+      "traduction": "sauter les pieds joints",
+      "alternative": [],
+      "exemple": "i cunna n kan.",
+      "traduction_exemple": "Tu m'as surpris."
+    }
+  ],
+  "D": [
+    {
+      "mot": "dá",
+      "traduction": "bouche, porte",
+      "alternative": ["da"],
+      "exemple": "i da ka di.",
+      "traduction_exemple": "Tu sais parler."
+    },
+    {
+      "mot": "dàamu",
+      "traduction": "plaisir, jouissance",
+      "alternative": [],
+      "exemple": "dàamu b'u fɛ o ka so.",
+      "traduction_exemple": "Ils ont la joie de vivre chez eux."
+    },
+    {
+      "mot": "dáari",
+      "traduction": "prier, demander",
+      "alternative": ["dari"],
+      "exemple": "a dari n ye.",
+      "traduction_exemple": "Demande-lui pardon."
+    },
+    {
+      "mot": "dàba",
+      "traduction": "houe",
+      "alternative": [],
+      "exemple": "bololadaba ye kelen ye.",
+      "traduction_exemple": "C'est une houe à main."
+    },
+    {
+      "mot": "dábɔ",
+      "traduction": "commencer",
+      "alternative": [],
+      "exemple": "a ka baara dabɔ.",
+      "traduction_exemple": "Il a commencé le travail."
+    },
+    {
+      "mot": "dén",
+      "traduction": "enfant",
+      "alternative": [],
+      "exemple": "denmuso ye muso ye.",
+      "traduction_exemple": "Une fille est une enfant."
+    },
+    {
+      "mot": "dèri",
+      "traduction": "être habitué",
+      "alternative": ["deli"],
+      "exemple": "u delila nɛnɛ la.",
+      "traduction_exemple": "Ils sont habitués au froid."
+    },
+    {
+      "mot": "dí",
+      "traduction": "donner",
+      "alternative": [],
+      "exemple": "a ka wari di Awa ma.",
+      "traduction_exemple": "Il a donné l'argent à Awa."
+    },
+    {
+      "mot": "dìga",
+      "traduction": "trou",
+      "alternative": ["dinga"],
+      "exemple": "toto don na dinga la.",
+      "traduction_exemple": "Le rat est entré dans le trou."
+    },
+    {
+      "mot": "dòn",
+      "traduction": "entrer",
+      "alternative": ["do"],
+      "exemple": "a don na bon na.",
+      "traduction_exemple": "Il est entré dans la maison."
+    }
+  ],
+  "E": [
+    {
+      "mot": "é",
+      "traduction": "tu, ton",
+      "alternative": ["e"],
+      "exemple": "é ba ye min?",
+      "traduction_exemple": "Quelle est ta mère?"
+    },
+    {
+      "mot": "ée",
+      "traduction": "eh",
+      "alternative": [],
+      "exemple": "ée, n ka see la.",
+      "traduction_exemple": "Eh, je suis arrivé."
+    },
+    {
+      "mot": "ekolo",
+      "traduction": "école",
+      "alternative": [],
+      "exemple": "denw be ekolo la.",
+      "traduction_exemple": "Les enfants sont à l'école."
+    },
+    {
+      "mot": "eleka",
+      "traduction": "allumette",
+      "alternative": [],
+      "exemple": "n ka eleka san.",
+      "traduction_exemple": "J'ai acheté des allumettes."
+    },
+    {
+      "mot": "en",
+      "traduction": "dans",
+      "alternative": [],
+      "exemple": "a don na bon en.",
+      "traduction_exemple": "Il est entré dans la maison."
+    },
+    {
+      "mot": "enbe",
+      "traduction": "rêve",
+      "alternative": [],
+      "exemple": "enbe dɔgɔ ye.",
+      "traduction_exemple": "C'est un mauvais rêve."
+    },
+    {
+      "mot": "essanc",
+      "traduction": "essence",
+      "alternative": [],
+      "exemple": "taji le, essanc tɛ.",
+      "traduction_exemple": "C'est du pétrole, pas l'essence."
+    },
+    {
+      "mot": "etere",
+      "traduction": "étoile",
+      "alternative": [],
+      "exemple": "san kofa be etere ye.",
+      "traduction_exemple": "Le ciel est plein d'étoiles."
+    },
+    {
+      "mot": "ewele",
+      "traduction": "chaleur",
+      "alternative": [],
+      "exemple": "ewele be bi kojugu.",
+      "traduction_exemple": "La chaleur est intense aujourd'hui."
+    },
+    {
+      "mot": "examen",
+      "traduction": "examen",
+      "alternative": [],
+      "exemple": "examen caman ye sisan.",
+      "traduction_exemple": "L'examen est difficile maintenant."
+    }
+  ],
+  "F": [
+    {
+      "mot": "fá",
+      "traduction": "remplir",
+      "alternative": ["fa"],
+      "exemple": "n be buteli fa ji la.",
+      "traduction_exemple": "Je remplis d'eau la bouteille."
+    },
+    {
+      "mot": "fà",
+      "traduction": "père",
+      "alternative": ["facɛ"],
+      "exemple": "n fa ye mɔgɔ ɲuman ye.",
+      "traduction_exemple": "Mon père est un homme bien."
+    },
+    {
+      "mot": "fáama",
+      "traduction": "fonctionnaire",
+      "alternative": [],
+      "exemple": "Musa kɛ la faama ye.",
+      "traduction_exemple": "Moussa est devenu fonctionnaire."
+    },
+    {
+      "mot": "fàamu",
+      "traduction": "comprendre",
+      "alternative": ["famu"],
+      "exemple": "n k'a faamu.",
+      "traduction_exemple": "Je l'ai compris."
+    },
+    {
+      "mot": "fán",
+      "traduction": "œuf",
+      "alternative": ["fan"],
+      "exemple": "sisɛfan ye kɛmɛ ye.",
+      "traduction_exemple": "Un œuf de poule coûte cinq cents francs."
+    },
+    {
+      "mot": "fàniya",
+      "traduction": "mensonge",
+      "alternative": [],
+      "exemple": "a be faniya fɔ tuma dɔw la.",
+      "traduction_exemple": "Il ment de temps en temps."
+    },
+    {
+      "mot": "fɛ̀",
+      "traduction": "vouloir, aimer",
+      "alternative": ["fɛ"],
+      "exemple": "a be wari fɛ.",
+      "traduction_exemple": "Il veut de l'argent."
+    },
+    {
+      "mot": "fili",
+      "traduction": "erreur",
+      "alternative": ["firi"],
+      "exemple": "a firi la sɛbɛli la.",
+      "traduction_exemple": "Il s'est trompé en écrivant."
+    },
+    {
+      "mot": "fó",
+      "traduction": "dire",
+      "alternative": ["fɔ"],
+      "exemple": "a fɔra ko…",
+      "traduction_exemple": "Il est dit que…"
+    },
+    {
+      "mot": "fòro",
+      "traduction": "champ",
+      "alternative": [],
+      "exemple": "a ya malo foro yɔrɔ ka jan dugu la.",
+      "traduction_exemple": "Son champ de riz est loin de la ville."
+    }
+  ],
+  "G": [
+    {
+      "mot": "gwáka",
+      "traduction": "panier",
+      "alternative": ["gbaka"],
+      "exemple": "woro gwaka ye gwo ye.",
+      "traduction_exemple": "Un panier de cola est lourd."
+    },
+    {
+      "mot": "gwakɛla",
+      "traduction": "cuisinier",
+      "alternative": [],
+      "exemple": "Aminata ye gwakɛla ye.",
+      "traduction_exemple": "Aminata est cuisinière."
+    },
+    {
+      "mot": "gwán",
+      "traduction": "suivre",
+      "alternative": ["gban"],
+      "exemple": "i kana gwan n kɔ.",
+      "traduction_exemple": "Ne me suis pas."
+    },
+    {
+      "mot": "gwànsan",
+      "traduction": "seulement",
+      "alternative": [],
+      "exemple": "n ka malo gwansan le sɔrɔ.",
+      "traduction_exemple": "Je n'ai trouvé que du riz."
+    },
+    {
+      "mot": "gwàsi",
+      "traduction": "frapper",
+      "alternative": ["gbasi"],
+      "exemple": "a ka da gwasi.",
+      "traduction_exemple": "Il a frappé à la porte."
+    },
+    {
+      "mot": "gwàtigi",
+      "traduction": "chef de famille",
+      "alternative": ["gbatigi"],
+      "exemple": "gwàtigi ye mɔgɔ ɲuman ye.",
+      "traduction_exemple": "Le chef de famille est un homme bien."
+    },
+    {
+      "mot": "gwɛ̀lɛ",
+      "traduction": "dur",
+      "alternative": ["gwɛrɛn"],
+      "exemple": "nɛgɛ ka gwɛlɛ.",
+      "traduction_exemple": "Le fer est dur."
+    },
+    {
+      "mot": "gwɛɲɛ",
+      "traduction": "fouet",
+      "alternative": ["gbɛɲɛ"],
+      "exemple": "gwɛɲɛ ka kan ni fali ye.",
+      "traduction_exemple": "Le fouet est pour l'âne."
+    },
+    {
+      "mot": "gwíli",
+      "traduction": "lourd",
+      "alternative": ["gbili"],
+      "exemple": "a ka gwili.",
+      "traduction_exemple": "C'est lourd."
+    },
+    {
+      "mot": "gwó",
+      "traduction": "désagréable",
+      "alternative": ["gbo"],
+      "exemple": "domuni nin ka gwo.",
+      "traduction_exemple": "Cette nourriture n'est pas agréable."
+    }
+  ],
+  "H": [
+    {
+      "mot": "hakɛya",
+      "traduction": "quantité, niveau",
+      "alternative": [],
+      "exemple": "hakɛya caman ye.",
+      "traduction_exemple": "C'est une grande quantité."
+    },
+    {
+      "mot": "hakili ɲuman",
+      "traduction": "bon sens",
+      "alternative": [],
+      "exemple": "hakili ɲuman be ɲi.",
+      "traduction_exemple": "Le bon sens est important."
+    },
+    {
+      "mot": "hakiliman",
+      "traduction": "intelligent",
+      "alternative": [],
+      "exemple": "mɔgɔ hakiliman le.",
+      "traduction_exemple": "C'est une personne sage."
+    },
+    {
+      "mot": "halaki",
+      "traduction": "détruire",
+      "alternative": [],
+      "exemple": "Ala ka teli ka jugumankɛbaga halaki.",
+      "traduction_exemple": "Dieu s'est empressé de détruire les malfaiteurs."
+    },
+    {
+      "mot": "háli",
+      "traduction": "même, encore",
+      "alternative": ["hali"],
+      "exemple": "hali bi a man kɛnɛ.",
+      "traduction_exemple": "Il est encore malade."
+    },
+    {
+      "mot": "hali dɔɔnin",
+      "traduction": "pas du tout",
+      "alternative": [],
+      "exemple": "fani nin ma gwɛ hali dɔɔnin.",
+      "traduction_exemple": "Ce pagne n'est pas propre du tout."
+    },
+    {
+      "mot": "hámi",
+      "traduction": "inquiet",
+      "alternative": [],
+      "exemple": "n be hámi la.",
+      "traduction_exemple": "Je suis inquiet."
+    },
+    {
+      "mot": "hàn",
+      "traduction": "coup",
+      "alternative": [],
+      "exemple": "a ka n han kelen ba.",
+      "traduction_exemple": "Il m'a donné un coup fort."
+    },
+    {
+      "mot": "hɛ́rɛ",
+      "traduction": "nuit",
+      "alternative": [],
+      "exemple": "hɛrɛ tun lo.",
+      "traduction_exemple": "C'était la nuit."
+    },
+    {
+      "mot": "hínɛ",
+      "traduction": "pitié",
+      "alternative": [],
+      "exemple": "hínɛ ka kɛ min?",
+      "traduction_exemple": "Qui a pitié de cela?"
+    }
+  ],
+  "I": [
+    {
+      "mot": "í",
+      "traduction": "tu, ton",
+      "alternative": ["i"],
+      "exemple": "i ba ye min?",
+      "traduction_exemple": "Quelle est ta mère?"
+    },
+    {
+      "mot": "i n'a fɔ",
+      "traduction": "comme, par exemple",
+      "alternative": [],
+      "exemple": "i n'a fɔ misali la.",
+      "traduction_exemple": "Comme dans la mosquée…"
+    },
+    {
+      "mot": "íle",
+      "traduction": "toi (emphase)",
+      "alternative": [],
+      "exemple": "ile nan na le.",
+      "traduction_exemple": "C'est toi qui es venu."
+    },
+    {
+      "mot": "in",
+      "traduction": "merci",
+      "alternative": [],
+      "exemple": "in ni cɛ o!",
+      "traduction_exemple": "Merci beaucoup!"
+    },
+    {
+      "mot": "insɔndiya",
+      "traduction": "joie",
+      "alternative": [],
+      "exemple": "insɔndiya be dɔn ya.",
+      "traduction_exemple": "La joie vient de la danse."
+    },
+    {
+      "mot": "ira",
+      "traduction": "montrer",
+      "alternative": [],
+      "exemple": "i ira n na min ye.",
+      "traduction_exemple": "Montre-moi cela."
+    },
+    {
+      "mot": "ira dugu",
+      "traduction": "direction",
+      "alternative": [],
+      "exemple": "ira dugu fɛ taga.",
+      "traduction_exemple": "Va dans cette direction."
+    },
+    {
+      "mot": "islan",
+      "traduction": "islam",
+      "alternative": [],
+      "exemple": "islan ye dinɛ ye.",
+      "traduction_exemple": "L'islam est une religion."
+    },
+    {
+      "mot": "itila",
+      "traduction": "habitude",
+      "alternative": [],
+      "exemple": "n itila ye deli ye.",
+      "traduction_exemple": "Mon habitude est de partir tôt."
+    },
+    {
+      "mot": "iyɛrɛ",
+      "traduction": "soi-même",
+      "alternative": [],
+      "exemple": "i kɛ iyɛrɛ tu.",
+      "traduction_exemple": "Fais-le toi-même."
+    }
+  ],
+  "J": [
+    {
+      "mot": "jàba",
+      "traduction": "oignon",
+      "alternative": [],
+      "exemple": "jaba ye joli ?",
+      "traduction_exemple": "Combien coûte l'oignon?"
+    },
+    {
+      "mot": "jabara",
+      "traduction": "télévision",
+      "alternative": [],
+      "exemple": "jabara ye ɲi dɔn ye.",
+      "traduction_exemple": "La télévision est une bonne invention."
+    },
+    {
+      "mot": "jabibi",
+      "traduction": "ananas",
+      "alternative": [],
+      "exemple": "jabibi ye joli ?",
+      "traduction_exemple": "Combien coûte l'ananas?"
+    },
+    {
+      "mot": "jága",
+      "traduction": "aumône",
+      "alternative": ["jáka"],
+      "exemple": "jága ye Ala ye.",
+      "traduction_exemple": "L'aumône est pour Dieu."
+    },
+    {
+      "mot": "jàgo",
+      "traduction": "commerce",
+      "alternative": [],
+      "exemple": "a ka jago kɛ, nka a fɔ la a la.",
+      "traduction_exemple": "Il a fait le commerce, mais il n'en a pas tiré profit."
+    },
+    {
+      "mot": "jàgokɛla",
+      "traduction": "commerçant",
+      "alternative": [],
+      "exemple": "bɛɛ kɛ la jagokɛla ye sisan.",
+      "traduction_exemple": "Tout le monde est devenu commerçant aujourd'hui."
+    },
+    {
+      "mot": "jàkuma",
+      "traduction": "chat",
+      "alternative": [],
+      "exemple": "jàkuma ye dɔ ye.",
+      "traduction_exemple": "Le chat est un animal."
+    },
+    {
+      "mot": "jàlan",
+      "traduction": "sec",
+      "alternative": [],
+      "exemple": "tiga jalan ye gwo ye.",
+      "traduction_exemple": "Les arachides sèches sont lourdes."
+    },
+    {
+      "mot": "jàma",
+      "traduction": "foule",
+      "alternative": [],
+      "exemple": "jama tun be dɔnkɛyɔrɔ la.",
+      "traduction_exemple": "Il y avait du monde au dancing."
+    },
+    {
+      "mot": "jáman",
+      "traduction": "se fâcher",
+      "alternative": [],
+      "exemple": "À jaman na n kuna.",
+      "traduction_exemple": "Il m'a grondé."
+    }
+  ],
+  "K": [
+    {
+      "mot": "kà",
+      "traduction": "et, pour",
+      "alternative": ["ka"],
+      "exemple": "a furu ra dugu la ka taga Abijan.",
+      "traduction_exemple": "Il s'est marié au village et est parti à Abidjan."
+    },
+    {
+      "mot": "kàla",
+      "traduction": "tige, connaissance",
+      "alternative": ["kala"],
+      "exemple": "n tɛ foyi kalaman.",
+      "traduction_exemple": "Je ne suis au courant de rien."
+    },
+    {
+      "mot": "kálaka",
+      "traduction": "lit",
+      "alternative": [],
+      "exemple": "kálaka ye gwo tɛ.",
+      "traduction_exemple": "Le lit n'est pas lourd."
+    },
+    {
+      "mot": "kalan",
+      "traduction": "chaud",
+      "alternative": [],
+      "exemple": "ji ka kalan sisan.",
+      "traduction_exemple": "L'eau est chaude maintenant."
+    },
+    {
+      "mot": "kán",
+      "traduction": "cou, langue",
+      "alternative": ["kan"],
+      "exemple": "a kaan fununa.",
+      "traduction_exemple": "Son cou est enflé."
+    },
+    {
+      "mot": "kása",
+      "traduction": "odeur",
+      "alternative": [],
+      "exemple": "kasa tɛ ji la.",
+      "traduction_exemple": "L'eau n'a pas d'odeur."
+    },
+    {
+      "mot": "kàsara",
+      "traduction": "accident",
+      "alternative": [],
+      "exemple": "mobili kasara tun lo.",
+      "traduction_exemple": "C'était un accident de voiture."
+    },
+    {
+      "mot": "kàsi",
+      "traduction": "pleurer",
+      "alternative": [],
+      "exemple": "a be kasi sisan.",
+      "traduction_exemple": "Il pleure maintenant."
+    },
+    {
+      "mot": "kɛ̀",
+      "traduction": "bien sûr",
+      "alternative": [],
+      "exemple": "ku ka di i ye wa ?",
+      "traduction_exemple": "Tu aimes l'igname? Bien sûr je l'aime."
+    },
+    {
+      "mot": "kɛ… ye",
+      "traduction": "devenir",
+      "alternative": [],
+      "exemple": "a kɛ la kuntigi ye.",
+      "traduction_exemple": "Il est devenu un chef."
+    }
+  ],
+  "L": [
+    {
+      "mot": "lá",
+      "traduction": "à, dans",
+      "alternative": ["la"],
+      "exemple": "n be taga lɔgɔfiyɛ la.",
+      "traduction_exemple": "Je vais au marché."
+    },
+    {
+      "mot": "lakɔlifa",
+      "traduction": "professeur",
+      "alternative": [],
+      "exemple": "lakɔlifa ka mobili san.",
+      "traduction_exemple": "Le professeur a acheté une voiture."
+    },
+    {
+      "mot": "lakɔliso",
+      "traduction": "école",
+      "alternative": ["lakɔli"],
+      "exemple": "denw be lakɔliso la.",
+      "traduction_exemple": "Les enfants sont à l'école."
+    },
+    {
+      "mot": "lakuma",
+      "traduction": "faire parler",
+      "alternative": [],
+      "exemple": "lakuma mɔgɔ ye ɲuman ye.",
+      "traduction_exemple": "Celui qui fait parler l'homme est sage."
+    },
+    {
+      "mot": "lákunu",
+      "traduction": "réveiller",
+      "alternative": [],
+      "exemple": "den lakunu.",
+      "traduction_exemple": "Réveille l'enfant."
+    },
+    {
+      "mot": "latigɛ",
+      "traduction": "décider, autoriser",
+      "alternative": [],
+      "exemple": "ni Ala ka ko min latigɛ.",
+      "traduction_exemple": "Ce que Dieu a décidé."
+    },
+    {
+      "mot": "láyɛlɛn",
+      "traduction": "faire monter",
+      "alternative": ["layɛlɛ"],
+      "exemple": "o be tɛgɛrɛ fɔ k'i layɛlɛn.",
+      "traduction_exemple": "On applaudit pour te faire monter."
+    },
+    {
+      "mot": "layi",
+      "traduction": "ail",
+      "alternative": [],
+      "exemple": "layi ka di sanji ye.",
+      "traduction_exemple": "L'ail améliore le repas."
+    },
+    {
+      "mot": "láyiru",
+      "traduction": "promesse",
+      "alternative": ["layiru"],
+      "exemple": "a ka a ya layri dafa.",
+      "traduction_exemple": "Il a tenu ses promesses."
+    },
+    {
+      "mot": "layɔrɔ",
+      "traduction": "arrangement",
+      "alternative": [],
+      "exemple": "layɔrɔ ye dɔ ye.",
+      "traduction_exemple": "L'arrangement est nécessaire."
+    }
+  ],
+  "M": [
+    {
+      "mot": "má",
+      "traduction": "ne pas",
+      "alternative": ["ma"],
+      "exemple": "n ma wari sɔrɔ fɔlɔ.",
+      "traduction_exemple": "Je n'ai pas encore trouvé d'argent."
+    },
+    {
+      "mot": "mà",
+      "traduction": "à",
+      "alternative": ["ma"],
+      "exemple": "a tɛ nin di mɔgɔ ma.",
+      "traduction_exemple": "Il ne donne ça à personne."
+    },
+    {
+      "mot": "madimi",
+      "traduction": "blesser",
+      "alternative": [],
+      "exemple": "den madimina a sen na.",
+      "traduction_exemple": "L'enfant s'est blessé au pied."
+    },
+    {
+      "mot": "màdon",
+      "traduction": "approcher",
+      "alternative": [],
+      "exemple": "a ka sigilanw madon.",
+      "traduction_exemple": "Il a approché les chaises."
+    },
+    {
+      "mot": "màga",
+      "traduction": "doux, toucher",
+      "alternative": [],
+      "exemple": "a man maga.",
+      "traduction_exemple": "Il n'est pas doux."
+    },
+    {
+      "mot": "màgwan",
+      "traduction": "effort",
+      "alternative": [],
+      "exemple": "magwan tun b'a la.",
+      "traduction_exemple": "Il a fait effort."
+    },
+    {
+      "mot": "málasa",
+      "traduction": "mélanger",
+      "alternative": [],
+      "exemple": "malasabaga ye mɔgɔ ye.",
+      "traduction_exemple": "Il est un tricheur."
+    },
+    {
+      "mot": "màlo",
+      "traduction": "riz",
+      "alternative": [],
+      "exemple": "malo ye ɲi dɔn ye.",
+      "traduction_exemple": "Le riz est bon à manger."
+    },
+    {
+      "mot": "maloya",
+      "traduction": "humilité",
+      "alternative": [],
+      "exemple": "a be maroya la.",
+      "traduction_exemple": "Il est timide."
+    },
+    {
+      "mot": "málɔ",
+      "traduction": "prêter",
+      "alternative": [],
+      "exemple": "i toro malɔ.",
+      "traduction_exemple": "Prête-moi ton oreille."
+    }
+  ],
+  "N": [
+    {
+      "mot": "nàkan",
+      "traduction": "destin",
+      "alternative": ["dakan"],
+      "exemple": "Ala k'a nakan diya.",
+      "traduction_exemple": "Que Dieu rende son destin agréable."
+    },
+    {
+      "mot": "nako",
+      "traduction": "venue, arrivée",
+      "alternative": [],
+      "exemple": "nako ye sawa la.",
+      "traduction_exemple": "L'arrivée me plaît."
+    },
+    {
+      "mot": "nali",
+      "traduction": "venue",
+      "alternative": ["nalen"],
+      "exemple": "lonaw nali diyara an ye.",
+      "traduction_exemple": "La venue des étrangers nous plaît."
+    },
+    {
+      "mot": "namara",
+      "traduction": "malhonnête",
+      "alternative": [],
+      "exemple": "a ye namara mɔgɔ ye.",
+      "traduction_exemple": "C'est un escroc."
+    },
+    {
+      "mot": "nanbaranin",
+      "traduction": "paralysé",
+      "alternative": [],
+      "exemple": "mun le ka di nanbara ye.",
+      "traduction_exemple": "Qu'est ce que le paralysé aime."
+    },
+    {
+      "mot": "nansɔngɔ",
+      "traduction": "dépenses de cuisine",
+      "alternative": [],
+      "exemple": "nansɔngɔ ye gwo ye.",
+      "traduction_exemple": "Les dépenses de cuisine sont importantes."
+    },
+    {
+      "mot": "nároman",
+      "traduction": "sot, stupide",
+      "alternative": ["naloman"],
+      "exemple": "naroman lo.",
+      "traduction_exemple": "Il est stupide."
+    },
+    {
+      "mot": "natabaya",
+      "traduction": "avidité",
+      "alternative": [],
+      "exemple": "natabaya tɛ ɲi ye.",
+      "traduction_exemple": "L'avidité n'est pas bonne."
+    },
+    {
+      "mot": "nbá",
+      "traduction": "salutation",
+      "alternative": ["nba"],
+      "exemple": "i ni sɔgɔma! nba hɛrɛ sira?",
+      "traduction_exemple": "Bonjour! As-tu bien passé la nuit?"
+    },
+    {
+      "mot": "nɛ́gɛnɛgɛ",
+      "traduction": "tromper, cajoler",
+      "alternative": [],
+      "exemple": "muso ka Amadu nɛgɛnɛgɛ.",
+      "traduction_exemple": "La femme a trompé Amadou."
+    }
+  ],
+  "Ɲ": [
+    {
+      "mot": "ɲá",
+      "traduction": "oeil, face",
+      "alternative": ["ɲɛ"],
+      "exemple": "Ne րa bɛ Bakary la.",
+      "traduction_exemple": "J'aperçois Bakary."
+    },
+    {
+      "mot": "ɲà",
+      "traduction": "aller bien, satisfaire",
+      "alternative": [],
+      "exemple": "baara bena ɲa kosɔbɛ.",
+      "traduction_exemple": "Le travail ira bien."
+    },
+    {
+      "mot": "ɲáfɔ",
+      "traduction": "expliquer",
+      "alternative": ["nyafɔ"],
+      "exemple": "i n'a fɔ Aminata ka ɲanfɔ cogo min.",
+      "traduction_exemple": "Comme Aminata l'a expliqué."
+    },
+    {
+      "mot": "ɲágami",
+      "traduction": "mélanger",
+      "alternative": ["nyagami"],
+      "exemple": "ji ni nɔnɔ ɲagami.",
+      "traduction_exemple": "Mélange l'eau et le lait."
+    },
+    {
+      "mot": "ɲágwan",
+      "traduction": "souffrance",
+      "alternative": ["ɲagban"],
+      "exemple": "ɲágwan ka ɲi tɛ.",
+      "traduction_exemple": "La souffrance n'est pas bonne."
+    },
+    {
+      "mot": "ɲanyira",
+      "traduction": "présenter, informer",
+      "alternative": ["nyanyira"],
+      "exemple": "A ka Buaké teriw ɲanyira o la.",
+      "traduction_exemple": "Il a informé ses amis de Bouaké."
+    },
+    {
+      "mot": "ɲasii",
+      "traduction": "cil",
+      "alternative": [],
+      "exemple": "ɲasii ye ɲa la.",
+      "traduction_exemple": "Les cils sont sur l'oeil."
+    },
+    {
+      "mot": "ɲɛ́gɛn",
+      "traduction": "toilettes",
+      "alternative": ["nyɛgɛn"],
+      "exemple": "ɲɛgɛn be mini?",
+      "traduction_exemple": "Où sont les toilettes?"
+    },
+    {
+      "mot": "ɲimi",
+      "traduction": "mâcher, croquer",
+      "alternative": ["nyimi"],
+      "exemple": "woroɲimi ka di cɛkɔrɔbaw ye.",
+      "traduction_exemple": "Les vieux aiment mâcher la cola."
+    },
+    {
+      "mot": "ɲín",
+      "traduction": "dent",
+      "alternative": ["nyin"],
+      "exemple": "a ɲin be n dimi.",
+      "traduction_exemple": "J'ai mal aux dents."
+    }
+  ],
+  "Ŋ": [
+    {
+      "mot": "ŋana",
+      "traduction": "aiguille",
+      "alternative": [],
+      "exemple": "ŋana ye gwo tɛ.",
+      "traduction_exemple": "L'aiguille n'est pas lourde."
+    },
+    {
+      "mot": "ŋaniya",
+      "traduction": "piqûre",
+      "alternative": [],
+      "exemple": "ŋaniya ye dɔ ye.",
+      "traduction_exemple": "La piqûre fait mal."
+    },
+    {
+      "mot": "ŋàniya",
+      "traduction": "poison",
+      "alternative": [],
+      "exemple": "ŋàniya tun b'a la.",
+      "traduction_exemple": "Le poison l'a tué."
+    },
+    {
+      "mot": "ŋaɲi",
+      "traduction": "poule",
+      "alternative": [],
+      "exemple": "ŋaɲi ye kumani ye.",
+      "traduction_exemple": "La poule pond."
+    },
+    {
+      "mot": "ŋɔni",
+      "traduction": "épine",
+      "alternative": [],
+      "exemple": "ŋɔni k'a sen sɔgɔ.",
+      "traduction_exemple": "L'épine l'a piqué au pied."
+    },
+    {
+      "mot": "ŋùnuma",
+      "traduction": "rampement",
+      "alternative": [],
+      "exemple": "ŋùnuma ye tɛ se tɔrɔ fɛ.",
+      "traduction_exemple": "Le rampement n'est pas bon pour l'honneur."
+    },
+    {
+      "mot": "ŋamana",
+      "traduction": "drame",
+      "alternative": [],
+      "exemple": "ŋamana tun lo sisan.",
+      "traduction_exemple": "C'était un drame maintenant."
+    },
+    {
+      "mot": "ŋanin",
+      "traduction": "aigre",
+      "alternative": [],
+      "exemple": "ŋanin ye ɲi tɛ.",
+      "traduction_exemple": "L'aigre n'est pas bon."
+    },
+    {
+      "mot": "ŋatigɛ",
+      "traduction": "effrayer",
+      "alternative": [],
+      "exemple": "min ŋatigɛla i?",
+      "traduction_exemple": "Qu'est-ce qui t'a effrayer?"
+    },
+    {
+      "mot": "ŋuman",
+      "traduction": "sauvage",
+      "alternative": [],
+      "exemple": "ŋuman kɔ ye gwo ye.",
+      "traduction_exemple": "La région sauvage est grande."
+    }
+  ],
+  "O": [
+    {
+      "mot": "ó",
+      "traduction": "chacun, chaque",
+      "alternative": ["o"],
+      "exemple": "i kana sunɔgɔ yɔrɔ o yɔrɔ la.",
+      "traduction_exemple": "Ne dors pas n'importe où."
+    },
+    {
+      "mot": "ò",
+      "traduction": "ils, elles",
+      "alternative": ["o"],
+      "exemple": "o be baranda susu.",
+      "traduction_exemple": "Elles pilent de la banane."
+    },
+    {
+      "mot": "o ɲina ma",
+      "traduction": "j'oublie",
+      "alternative": [],
+      "exemple": "o ɲina ma ko a tun nan.",
+      "traduction_exemple": "J'oublie qu'il était venu."
+    },
+    {
+      "mot": "òlugu",
+      "traduction": "seulement cela",
+      "alternative": [],
+      "exemple": "olugu tɛ ɲi.",
+      "traduction_exemple": "Seulement cela n'est pas bon."
+    },
+    {
+      "mot": "omina",
+      "traduction": "silence",
+      "alternative": [],
+      "exemple": "omina ye ɲi ye.",
+      "traduction_exemple": "Le silence est bon."
+    },
+    {
+      "mot": "ongɔ",
+      "traduction": "gorge",
+      "alternative": [],
+      "exemple": "ongɔ dɔ ye.",
+      "traduction_exemple": "La gorge fait mal."
+    },
+    {
+      "mot": "oni",
+      "traduction": "hier",
+      "alternative": [],
+      "exemple": "oni n be taga sɔgɔ.",
+      "traduction_exemple": "Hier je suis allé au marché."
+    },
+    {
+      "mot": "onsira",
+      "traduction": "route",
+      "alternative": [],
+      "exemple": "onsira ye jan ye.",
+      "traduction_exemple": "La route est longue."
+    },
+    {
+      "mot": "ota",
+      "traduction": "chose",
+      "alternative": [],
+      "exemple": "ota ye bɛ ye.",
+      "traduction_exemple": "La chose est là."
+    },
+    {
+      "mot": "ovɔ",
+      "traduction": "trou",
+      "alternative": [],
+      "exemple": "ovɔ ye gwo ye.",
+      "traduction_exemple": "Le trou est grand."
+    }
+  ],
+  "Ɔ": [
+    {
+      "mot": "ɔ̀nhɔ́n",
+      "traduction": "oui",
+      "alternative": ["ɔnɔn"],
+      "exemple": "a nan na wa? ɔnhɔn, a nan na.",
+      "traduction_exemple": "Il est venu? Oui, il est venu."
+    },
+    {
+      "mot": "ɔkoto",
+      "traduction": "aujourd'hui",
+      "alternative": [],
+      "exemple": "ɔkoto ye tarata ye.",
+      "traduction_exemple": "Aujourd'hui c'est mardi."
+    },
+    {
+      "mot": "ɔkutɔburukalo",
+      "traduction": "octobre",
+      "alternative": [],
+      "exemple": "ɔkutɔburukalo ye saaliba ye.",
+      "traduction_exemple": "Octobre est important."
+    },
+    {
+      "mot": "ɔkoro",
+      "traduction": "pou",
+      "alternative": [],
+      "exemple": "ɔkoro ye ɲi tɛ.",
+      "traduction_exemple": "Le pou n'est pas bon."
+    },
+    {
+      "mot": "ɔma",
+      "traduction": "mère",
+      "alternative": [],
+      "exemple": "ɔma ye mɔgɔ ɲuman ye.",
+      "traduction_exemple": "La mère est une femme bien."
+    },
+    {
+      "mot": "ɔndo",
+      "traduction": "garçon",
+      "alternative": [],
+      "exemple": "ɔndo ye dɔgɔ ye.",
+      "traduction_exemple": "Le garçon est jeune."
+    },
+    {
+      "mot": "ɔngoni",
+      "traduction": "épine",
+      "alternative": [],
+      "exemple": "ɔngoni k'a la.",
+      "traduction_exemple": "L'épine l'a piqué."
+    },
+    {
+      "mot": "ɔron",
+      "traduction": "trône",
+      "alternative": [],
+      "exemple": "ɔron ye bagabaga ye.",
+      "traduction_exemple": "Le trône est magnifique."
+    },
+    {
+      "mot": "ɔsa",
+      "traduction": "serpent",
+      "alternative": [],
+      "exemple": "ɔsa jugu ye gwo ye.",
+      "traduction_exemple": "Le serpent venimeux est dangereux."
+    },
+    {
+      "mot": "ɔyɛ",
+      "traduction": "cela",
+      "alternative": [],
+      "exemple": "ɔyɛ ye ɲi ye.",
+      "traduction_exemple": "Cela est bon."
+    }
+  ],
+  "P": [
+    {
+      "mot": "pán",
+      "traduction": "sauter",
+      "alternative": ["pan"],
+      "exemple": "wulu panna sigilan kan.",
+      "traduction_exemple": "Le chien a sauté sur la chaise."
+    },
+    {
+      "mot": "parenticɛ",
+      "traduction": "apprenti",
+      "alternative": [],
+      "exemple": "parenticɛ ye baara kɛ.",
+      "traduction_exemple": "L'apprenti travaille."
+    },
+    {
+      "mot": "pásipasi",
+      "traduction": "très blanc",
+      "alternative": [],
+      "exemple": "fani gwɛ la pasipasi.",
+      "traduction_exemple": "Le pagne est devenu très blanc."
+    },
+    {
+      "mot": "patɔrɔn",
+      "traduction": "patron",
+      "alternative": [],
+      "exemple": "patɔrɔn ye mɔgɔ ɲuman ye.",
+      "traduction_exemple": "Le patron est un homme bien."
+    },
+    {
+      "mot": "péwu",
+      "traduction": "complètement",
+      "alternative": ["pewu"],
+      "exemple": "a banna pewu.",
+      "traduction_exemple": "C'est complètement fini."
+    },
+    {
+      "mot": "pine",
+      "traduction": "roue",
+      "alternative": [],
+      "exemple": "pine naani be mobili la.",
+      "traduction_exemple": "La voiture a quatre roues."
+    },
+    {
+      "mot": "politikimɔgɔ",
+      "traduction": "politicien",
+      "alternative": [],
+      "exemple": "politikimɔgɔ tun lo sisan.",
+      "traduction_exemple": "C'est un politicien maintenant."
+    },
+    {
+      "mot": "pɔli",
+      "traduction": "police",
+      "alternative": [],
+      "exemple": "pɔli tun lo yan.",
+      "traduction_exemple": "La police était là."
+    },
+    {
+      "mot": "ponɔ",
+      "traduction": "combat",
+      "alternative": [],
+      "exemple": "ponɔ ye dɔgɔ ye.",
+      "traduction_exemple": "Le combat est difficile."
+    },
+    {
+      "mot": "pɔsɔ",
+      "traduction": "force",
+      "alternative": [],
+      "exemple": "pɔsɔ ye gwo ye.",
+      "traduction_exemple": "La force est grande."
+    }
+  ],
+  "S": [
+    {
+      "mot": "sà",
+      "traduction": "finir, mourir",
+      "alternative": ["sa"],
+      "exemple": "ni kalo sara n be taga so.",
+      "traduction_exemple": "Après la fin du mois je rentre à la maison."
+    },
+    {
+      "mot": "saa",
+      "traduction": "serpent",
+      "alternative": [],
+      "exemple": "sa jugu k'a cin.",
+      "traduction_exemple": "Un serpent venimeux l'a mordu."
+    },
+    {
+      "mot": "sàan",
+      "traduction": "année",
+      "alternative": ["saan"],
+      "exemple": "saan o saan.",
+      "traduction_exemple": "Chaque année."
+    },
+    {
+      "mot": "samara",
+      "traduction": "chaussure",
+      "alternative": [],
+      "exemple": "samara tɛ fatɔ sen na.",
+      "traduction_exemple": "Le fou ne porte pas de chaussures."
+    },
+    {
+      "mot": "sàmiɲa",
+      "traduction": "saison des pluies",
+      "alternative": ["saminya"],
+      "exemple": "ni samiɲa don na.",
+      "traduction_exemple": "Quand la saison des pluies arrive."
+    },
+    {
+      "mot": "sán",
+      "traduction": "ciel",
+      "alternative": ["san"],
+      "exemple": "san finna, sanji be na.",
+      "traduction_exemple": "Le ciel s'obscurcit, il va pleuvoir."
+    },
+    {
+      "mot": "sánga",
+      "traduction": "succès",
+      "alternative": [],
+      "exemple": "Musa ka sanga sɔrɔ.",
+      "traduction_exemple": "Moussa a eu du succès."
+    },
+    {
+      "mot": "sànga",
+      "traduction": "funérailles",
+      "alternative": [],
+      "exemple": "sanga ye gwo ye.",
+      "traduction_exemple": "Les funérailles sont importantes."
+    },
+    {
+      "mot": "sáni",
+      "traduction": "propre",
+      "alternative": ["sani"],
+      "exemple": "fani ka sani.",
+      "traduction_exemple": "Le pagne est propre."
+    },
+    {
+      "mot": "sanikɛla",
+      "traduction": "client",
+      "alternative": [],
+      "exemple": "i ye n ya sanikɛla bɛrɛ ye.",
+      "traduction_exemple": "Tu est mon vrai client."
+    }
+  ],
+  "T": [
+    {
+      "mot": "tá",
+      "traduction": "prendre, mien",
+      "alternative": ["ta"],
+      "exemple": "a ka min ta, n ta le.",
+      "traduction_exemple": "Ce qu'il a pris, est le mien."
+    },
+    {
+      "mot": "tà",
+      "traduction": "prendre",
+      "alternative": ["ta"],
+      "exemple": "a ka min ta.",
+      "traduction_exemple": "Il a pris cela."
+    },
+    {
+      "mot": "tábali",
+      "traduction": "table",
+      "alternative": [],
+      "exemple": "a ye tabalitigi ye.",
+      "traduction_exemple": "Il est étalagiste."
+    },
+    {
+      "mot": "táfiyɛ",
+      "traduction": "éventail",
+      "alternative": [],
+      "exemple": "tafiyɛ ye ɲi ye.",
+      "traduction_exemple": "L'éventail est bon."
+    },
+    {
+      "mot": "taji",
+      "traduction": "pétrole",
+      "alternative": [],
+      "exemple": "taji banna.",
+      "traduction_exemple": "Le pétrole est épuisé."
+    },
+    {
+      "mot": "takala",
+      "traduction": "allumette",
+      "alternative": [],
+      "exemple": "takala ye gwo tɛ.",
+      "traduction_exemple": "L'allumette n'est pas lourde."
+    },
+    {
+      "mot": "táma",
+      "traduction": "un franc",
+      "alternative": ["tama"],
+      "exemple": "tama kelen.",
+      "traduction_exemple": "Un franc."
+    },
+    {
+      "mot": "tàmaki",
+      "traduction": "craindre",
+      "alternative": [],
+      "exemple": "n tɛ tamaki mɔgɔ si la.",
+      "traduction_exemple": "Je ne crains personne."
+    },
+    {
+      "mot": "tàman",
+      "traduction": "lance",
+      "alternative": [],
+      "exemple": "taman ye dɔ ye.",
+      "traduction_exemple": "La lance est utile."
+    },
+    {
+      "mot": "támaro",
+      "traduction": "datte",
+      "alternative": [],
+      "exemple": "támaro ye joli ?",
+      "traduction_exemple": "Combien coûte la datte?"
+    }
+  ],
+  "U": [
+    {
+      "mot": "ù",
+      "traduction": "ils, elles",
+      "alternative": ["u"],
+      "exemple": "u be taga sɔgɔ.",
+      "traduction_exemple": "Ils sont allés au marché."
+    },
+    {
+      "mot": "utikalo",
+      "traduction": "août",
+      "alternative": [],
+      "exemple": "utikalo ye baara kalo ye.",
+      "traduction_exemple": "Août est un mois de travail."
+    },
+    {
+      "mot": "u n'a fɔ",
+      "traduction": "seulement",
+      "alternative": [],
+      "exemple": "u n'a fɔ ye dɔ ye.",
+      "traduction_exemple": "Seulement cela est utile."
+    },
+    {
+      "mot": "ubani",
+      "traduction": "ensemble",
+      "alternative": [],
+      "exemple": "ubani ye ɲi ye.",
+      "traduction_exemple": "L'ensemble est bon."
+    },
+    {
+      "mot": "udɔ",
+      "traduction": "autre",
+      "alternative": [],
+      "exemple": "udɔ ye dɔ ye.",
+      "traduction_exemple": "L'autre est important."
+    },
+    {
+      "mot": "ugara",
+      "traduction": "règne",
+      "alternative": [],
+      "exemple": "ugara ye gwo ye.",
+      "traduction_exemple": "Le règne est grand."
+    },
+    {
+      "mot": "ujan",
+      "traduction": "loin",
+      "alternative": [],
+      "exemple": "ujan ye dɔgɔ ye.",
+      "traduction_exemple": "C'est loin."
+    },
+    {
+      "mot": "ukolo",
+      "traduction": "école",
+      "alternative": [],
+      "exemple": "ukolo la denw ye.",
+      "traduction_exemple": "À l'école se sont les enfants."
+    },
+    {
+      "mot": "uma",
+      "traduction": "ce",
+      "alternative": [],
+      "exemple": "uma ye dɔ ye.",
+      "traduction_exemple": "Ceci est utile."
+    },
+    {
+      "mot": "unin",
+      "traduction": "veille",
+      "alternative": [],
+      "exemple": "unin te n be sigi.",
+      "traduction_exemple": "Hier soir j'étais assis."
+    }
+  ],
+  "V": [
+    {
+      "mot": "voca",
+      "traduction": "avocat",
+      "alternative": [],
+      "exemple": "voca nin ye joli ?",
+      "traduction_exemple": "Combien coûte cet avocat?"
+    },
+    {
+      "mot": "vɔvɔni",
+      "traduction": "manbat vert",
+      "alternative": [],
+      "exemple": "vɔvɔni be mɔgɔ kin.",
+      "traduction_exemple": "Le manbat vert mord l'homme."
+    },
+    {
+      "mot": "vira",
+      "traduction": "montrer",
+      "alternative": [],
+      "exemple": "vira n na min ye.",
+      "traduction_exemple": "Montre-moi cela."
+    },
+    {
+      "mot": "virani",
+      "traduction": "montré",
+      "alternative": [],
+      "exemple": "virani tun lo.",
+      "traduction_exemple": "C'était montré."
+    },
+    {
+      "mot": "vo",
+      "traduction": "place",
+      "alternative": [],
+      "exemple": "vo ye gwo ye.",
+      "traduction_exemple": "La place est grande."
+    },
+    {
+      "mot": "volo",
+      "traduction": "vole",
+      "alternative": [],
+      "exemple": "volo tun lo.",
+      "traduction_exemple": "C'était un vol."
+    },
+    {
+      "mot": "vosa",
+      "traduction": "marche",
+      "alternative": [],
+      "exemple": "vosa ye dɔ ye.",
+      "traduction_exemple": "La marche est bonne."
+    },
+    {
+      "mot": "vura",
+      "traduction": "dépourvu",
+      "alternative": [],
+      "exemple": "vura tɛ baara kɛ.",
+      "traduction_exemple": "Le dépourvu ne peut pas travailler."
+    },
+    {
+      "mot": "vusi",
+      "traduction": "fumé",
+      "alternative": [],
+      "exemple": "vusi jɛgɛ ye dɔ ye.",
+      "traduction_exemple": "Le poisson fumé est bon."
+    },
+    {
+      "mot": "vɔyɔ",
+      "traduction": "appel",
+      "alternative": [],
+      "exemple": "vɔyɔ ye ɲi ye.",
+      "traduction_exemple": "L'appel est bon."
+    }
+  ],
+  "W": [
+    {
+      "mot": "wà",
+      "traduction": "est-ce que",
+      "alternative": ["wa"],
+      "exemple": "a ka min fɔ, i m'a mɛn wa?",
+      "traduction_exemple": "Est-ce que tu n'as pas compris?"
+    },
+    {
+      "mot": "wáa",
+      "traduction": "ou bien",
+      "alternative": ["waa"],
+      "exemple": "jɔ le nan na, cɛ waa muso?",
+      "traduction_exemple": "Qui est venu, un homme ou une femme?"
+    },
+    {
+      "mot": "wága",
+      "traduction": "mille",
+      "alternative": ["waga"],
+      "exemple": "muso waga kelen kunbɛn na.",
+      "traduction_exemple": "Mille femmes se sont réunies."
+    },
+    {
+      "mot": "wála",
+      "traduction": "ou",
+      "alternative": ["wala"],
+      "exemple": "i taga ra wala i tɛ na?",
+      "traduction_exemple": "Tu pars ou tu ne pars pas?"
+    },
+    {
+      "mot": "wálasa",
+      "traduction": "afin que",
+      "alternative": ["walasa"],
+      "exemple": "a kɛ joona walasa an ye taga.",
+      "traduction_exemple": "Fais vite afin que nous partions."
+    },
+    {
+      "mot": "walayi",
+      "traduction": "au nom de Dieu",
+      "alternative": [],
+      "exemple": "walayi ne tun m'a lɔn dɛ!",
+      "traduction_exemple": "Au nom de Dieu je ne le savais pas!"
+    },
+    {
+      "mot": "wo",
+      "traduction": "que ce soit",
+      "alternative": [],
+      "exemple": "Orange wo, o bɛɛ sɔngɔ ka ca!",
+      "traduction_exemple": "Que ce soit Orange, les prix sont chers!"
+    },
+    {
+      "mot": "wò",
+      "traduction": "trou",
+      "alternative": ["wo"],
+      "exemple": "wo caaman b'i ya derekeba la.",
+      "traduction_exemple": "Il y a beaucoup de trous."
+    },
+    {
+      "mot": "wólo",
+      "traduction": "naître",
+      "alternative": ["wolo"],
+      "exemple": "i wolo la yɔrɔ juman?",
+      "traduction_exemple": "Où es-tu né?"
+    },
+    {
+      "mot": "wòro",
+      "traduction": "cola",
+      "alternative": [],
+      "exemple": "n tɛ dɔlɔ min, n tɛ woro ɲimi.",
+      "traduction_exemple": "Je ne bois pas d'alcool, je ne mâche pas de cola."
+    }
+  ],
+  "Y": [
+    {
+      "mot": "ya",
+      "traduction": "son, sa",
+      "alternative": ["ta"],
+      "exemple": "Musa, i ka n ya wari ye wa?",
+      "traduction_exemple": "Moussa, as-tu vu mon argent?"
+    },
+    {
+      "mot": "yáada",
+      "traduction": "être arrogant",
+      "alternative": [],
+      "exemple": "yaada b'a la.",
+      "traduction_exemple": "Il est arrogant."
+    },
+    {
+      "mot": "yafa",
+      "traduction": "pardonner",
+      "alternative": [],
+      "exemple": "ne tɛ se ka yafa n juguw ma.",
+      "traduction_exemple": "Je ne peux pas pardonner à mes ennemis."
+    },
+    {
+      "mot": "yàn",
+      "traduction": "ici",
+      "alternative": ["yan"],
+      "exemple": "o tɛ yan.",
+      "traduction_exemple": "Ils ne sont pas ici."
+    },
+    {
+      "mot": "yànni",
+      "traduction": "avant que",
+      "alternative": ["sanni"],
+      "exemple": "yanni o be nan.",
+      "traduction_exemple": "Avant qu'ils viennent."
+    },
+    {
+      "mot": "yé",
+      "traduction": "être",
+      "alternative": [],
+      "exemple": "Musa ye Madu dencɛ ye.",
+      "traduction_exemple": "Moussa est le fils de Madu."
+    },
+    {
+      "mot": "yèele",
+      "traduction": "fondre",
+      "alternative": ["yeele"],
+      "exemple": "tere be turu yeele.",
+      "traduction_exemple": "Le soleil fond l'huile."
+    },
+    {
+      "mot": "yélen",
+      "traduction": "lumière",
+      "alternative": [],
+      "exemple": "yélen ye ɲi ye.",
+      "traduction_exemple": "La lumière est bonne."
+    },
+    {
+      "mot": "yèn",
+      "traduction": "là-bas",
+      "alternative": ["yen"],
+      "exemple": "a taga ra yen.",
+      "traduction_exemple": "Il est parti là-bas."
+    },
+    {
+      "mot": "yɛ̀lɛ",
+      "traduction": "monter",
+      "alternative": ["yɛlɛ"],
+      "exemple": "denin yɛlɛ la yiri la.",
+      "traduction_exemple": "Le gamin est monté dans l'arbre."
+    }
+  ],
+  "Z": [
+    {
+      "mot": "zaana",
+      "traduction": "proverbe",
+      "alternative": ["sana"],
+      "exemple": "ziirin bɛɛ n'a zaana.",
+      "traduction_exemple": "Chaque histoire contient un proverbe."
+    },
+    {
+      "mot": "zaban",
+      "traduction": "côcôta",
+      "alternative": [],
+      "exemple": "zaban ye joli?",
+      "traduction_exemple": "Combien coûte le côcôta?"
+    },
+    {
+      "mot": "zagamɛn",
+      "traduction": "riz gras",
+      "alternative": [],
+      "exemple": "zagamɛn ka di mɔgɔ caaman ye.",
+      "traduction_exemple": "Beaucoup de gens aiment le zagamɛn."
+    },
+    {
+      "mot": "zanwiyekalo",
+      "traduction": "janvier",
+      "alternative": [],
+      "exemple": "zanwiyekalo ye saaliba ye.",
+      "traduction_exemple": "Janvier est important."
+    },
+    {
+      "mot": "zɛmɛ",
+      "traduction": "cerveau",
+      "alternative": ["sɛmɛ"],
+      "exemple": "zɛmɛ ye dɔ ye.",
+      "traduction_exemple": "Le cerveau est important."
+    },
+    {
+      "mot": "ziirin",
+      "traduction": "conte",
+      "alternative": ["siirin"],
+      "exemple": "a ka ziirin ziirin fɔ.",
+      "traduction_exemple": "Il a raconté une histoire."
+    },
+    {
+      "mot": "zɔnzɔn",
+      "traduction": "crevette",
+      "alternative": [],
+      "exemple": "zɔnzɔn ye ɲi ye.",
+      "traduction_exemple": "La crevette est bonne."
+    },
+    {
+      "mot": "zuɛnkalo",
+      "traduction": "juin",
+      "alternative": [],
+      "exemple": "zuɛnkalo ye baara kalo ye.",
+      "traduction_exemple": "Juin est un mois de travail."
+    },
+    {
+      "mot": "zuwekalo",
+      "traduction": "juillet",
+      "alternative": [],
+      "exemple": "zuwekalo ye jama kalo ye.",
+      "traduction_exemple": "Juillet est un mois de foule."
+    },
+    {
+      "mot": "zya",
+      "traduction": "chose",
+      "alternative": [],
+      "exemple": "zya ye bɛ ye.",
+      "traduction_exemple": "La chose est là."
+    }
+  ]
+}

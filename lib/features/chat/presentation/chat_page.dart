@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/chat/services/chat_services.dart';
+import 'package:ivox/shared/utils/responsive.dart';
 
 class ChatPage extends StatefulWidget {
   final String receiverEmail;
@@ -47,6 +48,11 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
@@ -56,6 +62,9 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobileOrTablet(context);
+    final maxWidth = Responsive.getMaxWidth(context);
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -80,11 +89,16 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(child: _buildMessageList()),
-          _buildUserInput(),
-        ],
+      body: Center(
+        child: SizedBox(
+          width: isMobile ? maxWidth : 800,
+          child: Column(
+            children: [
+              Expanded(child: _buildMessageList()),
+              _buildUserInput(),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -119,6 +133,15 @@ class _ChatPageState extends State<ChatPage> {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     bool isCurrentUser = data["senderID"] == _authService.getUser()!.uid;
 
+    // Formater l'heure du message
+    final timestamp = data['timestamp'] as Timestamp?;
+    String timeString = '';
+    if (timestamp != null) {
+      final dateTime = timestamp.toDate();
+      timeString =
+          '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    }
+
     return Container(
       alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -138,9 +161,25 @@ class _ChatPageState extends State<ChatPage> {
                   bottomRight: Radius.circular(16),
                 ),
         ),
-        child: Text(
-          data['message'],
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        child: Column(
+          crossAxisAlignment: isCurrentUser
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
+          children: [
+            Text(
+              data['message'],
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              timeString,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color:  Colors.grey[600],
+              ),
+            ),
+          ],
         ),
       ),
     );

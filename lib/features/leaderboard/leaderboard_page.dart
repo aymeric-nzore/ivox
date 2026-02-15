@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:ivox/shared/widgets/main_bottom_nav_bar.dart';
 
 class LeaderboardPage extends StatefulWidget {
-  const LeaderboardPage({super.key});
+  final int currentIndex;
+  final ValueChanged<int> onTabSelected;
+
+  const LeaderboardPage({
+    super.key,
+    required this.currentIndex,
+    required this.onTabSelected,
+  });
 
   @override
   State<LeaderboardPage> createState() => _LeaderboardPageState();
@@ -15,6 +23,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         title: Text("Leadboard"),
         centerTitle: true,
         leading: Text(""),
+      ),
+      bottomNavigationBar: MainBottomNavBar(
+        currentIndex: widget.currentIndex,
+        onTap: widget.onTabSelected,
       ),
     );
   }

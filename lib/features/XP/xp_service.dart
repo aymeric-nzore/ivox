@@ -11,28 +11,28 @@ class XpService {
 
   //Ajoutez de l'xp
   Future<void> addXp(int xpToAdd) async {
-    final current_user = _auth.currentUser;
-    final user_doc = _firestore.collection("users").doc(current_user?.uid);
+    final currentUser = _auth.currentUser;
+    final userDoc = _firestore.collection("users").doc(currentUser?.uid);
 
     //recup les infos du doc firestore
-    final snapshot = await user_doc.get();
-    int current_xp = snapshot['xp'];
+    final snapshot = await userDoc.get();
+    int currentXp = snapshot['xp'];
     int totalXp = snapshot['totalXp'];
-    int current_lvl = snapshot['level'];
+    int currentLvl = snapshot['level'];
 
     //Gain d'xp
-    current_xp += xpToAdd;
+    currentXp += xpToAdd;
     totalXp += xpToAdd;
     //Evoluer en lvl
-    if (current_xp >= xpRequired(current_lvl)) {
-      current_xp -= xpRequired(current_lvl);
-      current_lvl++;
+    if (currentXp >= xpRequired(currentLvl)) {
+      currentXp -= xpRequired(currentLvl);
+      currentLvl++;
     }
     //Update to firestore
-    await user_doc.update({
-      'xp': current_xp,
+    await userDoc.update({
+      'xp': currentXp,
       'totalXp': totalXp,
-      'level': current_lvl,
+      'level': currentLvl,
     });
   }
 }

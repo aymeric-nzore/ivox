@@ -60,48 +60,47 @@ class AuthService {
 
   //Google
   Future<UserCredential> signInWithGoogle() async {
-    // Get the GoogleSignIn instance (singleton in v7.x)
-    final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-    // Trigger the authentication flow (replaces signIn() in v7.x)
-    final GoogleSignInAccount googleUser = await googleSignIn.authenticate();
+      if (googleUser == null) {
+        throw Exception("Google Sign-In cancelled");
+      }
 
-    // Obtenir les détails d'authentification (idToken only in v7.x)
-    final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
-    // Get access token from authorization client for Firebase
-    final GoogleSignInClientAuthorization? authorization = await googleUser
-        .authorizationClient
-        .authorizationForScopes(['email', 'profile']);
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
 
-    // Créer les credentials
-    final credential = GoogleAuthProvider.credential(
-      accessToken: authorization?.accessToken,
-      idToken: googleAuth.idToken,
-    );
+      UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
 
-    // Se connecter avec Firebase
-    UserCredential userCredential = await _auth.signInWithCredential(
-      credential,
-    );
+      final userDoc = await _firestore
+          .collection("users")
+          .doc(userCredential.user!.uid)
+          .get();
 
-    // Enregistrer/mettre à jour l'utilisateur dans Firestore
-    final userDoc = await _firestore
-        .collection("users")
-        .doc(userCredential.user!.uid)
-        .get();
+      if (!userDoc.exists) {
+        await _firestore.collection("users").doc(userCredential.user!.uid).set({
+          'uid': userCredential.user!.uid,
+          'username': googleUser.displayName ?? 'User',
+          'email': googleUser.email,
+          'photoUrl': googleUser.photoUrl,
+          'timestamp': Timestamp.now(),
+          'level': 1,
+          'xp': 0,
+          'totalXp': 0,
+        });
+      }
 
-    if (!userDoc.exists) {
-      await _firestore.collection("users").doc(userCredential.user!.uid).set({
-        'uid': userCredential.user!.uid,
-        'username': googleUser.displayName ?? 'User',
-        'email': googleUser.email,
-        'photoUrl': googleUser.photoUrl,
-        'timestamp': Timestamp.now(),
-      });
+      return userCredential;
+    } catch (e) {
+      rethrow;
     }
-
-    return userCredential;
   }
 
   //Facebook

@@ -6,12 +6,13 @@ class ListviewQuizz {
   final String description;
   final String times;
   final Color bgColor;
+  final int starCompt;
 
   ListviewQuizz({
     required this.imagePath,
     required this.title,
     required this.description,
     required this.times,
-    required this.bgColor,
+    required this.bgColor, required this.starCompt,
   });
 }
