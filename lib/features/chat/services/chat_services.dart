@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 import 'package:ivox/features/chat/models/message_model.dart';
 
 class ChatServices {
@@ -27,10 +28,18 @@ class ChatServices {
   Future<void> sendMessage(String receiverID, String message) async {
     final currentUserID = _auth.currentUser!.uid;
     final currentUserEmail = _auth.currentUser!.email!;
+    final currentUserDoc =
+      await _firestore.collection('users').doc(currentUserID).get();
+    final currentUsername =
+      (currentUserDoc.data()?['username'] as String?)?.trim();
+    final senderName = (currentUsername != null && currentUsername.isNotEmpty)
+      ? currentUsername
+      : currentUserEmail;
 
     MessageModel newMessage = MessageModel(
       senderID: currentUserID,
       senderEmail: currentUserEmail,
+      senderUsername: senderName,
       receiverID: receiverID,
       message: message,
       timestamp: Timestamp.now(),
@@ -48,14 +57,16 @@ class ChatServices {
         .collection("message")
         .add(newMessage.toMap());
 
-    // Envoyer la notification via FCM server
-    await _sendNotificationToServer(receiverID, currentUserEmail, message);
+      
+
+    // Envoyer la notification via FCM server sans bloquer l'envoi du message
+    unawaited(_sendNotificationToServer(receiverID, senderName, message));
   }
 
   //Envoyer une notification via le serveur FCM
   Future<void> _sendNotificationToServer(
     String receiverID,
-    String senderEmail,
+    String senderName,
     String message,
   ) async {
     try {
@@ -74,7 +85,7 @@ class ChatServices {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'token': fcmToken,
-          'title': 'Nouveau message de $senderEmail',
+          'title': 'Nouveau message de $senderName',
           'body': message,
         }),
       ).timeout(const Duration(seconds: 10));

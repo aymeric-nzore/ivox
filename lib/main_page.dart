@@ -90,9 +90,7 @@ class _MainPageState extends State<MainPage> {
                 .toList(),
           ),
           // Content
-          Expanded(
-            child: _buildPage(),
-          ),
+          Expanded(child: _buildPage()),
         ],
       ),
     );

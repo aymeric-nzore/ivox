@@ -1,13 +1,14 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class NotificationService {
+class NotificationService with WidgetsBindingObserver {
   NotificationService._internal();
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -17,6 +18,7 @@ class NotificationService {
   StreamSubscription<QuerySnapshot>? _messageSubscription;
   StreamSubscription<User?>? _authSubscription;
   bool _hasLoadedInitialMessages = false;
+  bool _isAppInForeground = true;
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
 
@@ -59,6 +61,8 @@ class NotificationService {
       onDidReceiveNotificationResponse: _handleNotificationResponse,
     );
 
+    WidgetsBinding.instance.addObserver(this);
+
     // Configurer les handlers Firebase Cloud Messaging
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
@@ -79,6 +83,11 @@ class NotificationService {
     _authSubscription ??=
         FirebaseAuth.instance.authStateChanges().listen(_handleAuthStateChange);
     await _handleAuthStateChange(FirebaseAuth.instance.currentUser);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _isAppInForeground = state == AppLifecycleState.resumed;
   }
 
   // Sauvegarder le token FCM dans Firestore après la connexion
@@ -138,11 +147,6 @@ class NotificationService {
   // Gérer les messages reçus au premier plan
   void _handleForegroundMessage(RemoteMessage message) {
     print('Message reçu en premier plan: ${message.notification?.title}');
-    showNotification(
-      id: DateTime.now().millisecond,
-      title: message.notification?.title,
-      body: message.notification?.body,
-    );
   }
 
   Future<void> startMessageListener() async {
@@ -167,11 +171,15 @@ class NotificationService {
 
         final senderId = data['senderID'] as String?;
         if (senderId == user.uid) continue;
+        if (_isAppInForeground) continue;
 
-        final senderEmail = data['senderEmail'] as String? ?? 'Nouveau message';
+        final senderName =
+            (data['senderUsername'] as String?) ??
+            (data['senderEmail'] as String?) ??
+            'Nouveau message';
         final message = data['message'] as String? ?? 'Nouveau message';
         showMessageNotification(
-          senderEmail: senderEmail,
+          senderName: senderName,
           messagePreview: message,
         );
       }
@@ -234,12 +242,12 @@ class NotificationService {
 
   //Notif des messages
   Future<void> showMessageNotification({
-    required String senderEmail,
+    required String senderName,
     required String messagePreview,
   }) {
     return showNotification(
       id: DateTime.now().millisecond,
-      title: "Nouveau message de $senderEmail",
+      title: "Nouveau message de $senderName",
       body: messagePreview,
     );
   }
