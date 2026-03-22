@@ -677,7 +677,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(12),
                         child: GestureDetector(
                           onTap: () => Navigator.push(
                             context,
