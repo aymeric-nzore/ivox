@@ -267,6 +267,19 @@ class ChatServices {
     await _apiService.dio.post('/users/block/$targetUserId');
   }
 
+  Future<List<ChatUser>> getBlockedUsers() async {
+    await _initSocket();
+    final response = await _apiService.dio.get('/users/blocked');
+    final data = response.data;
+    if (data is! List) return [];
+    return data.map((e) => ChatUser.fromJson(_toMap(e))).toList();
+  }
+
+  Future<void> unblockUser(String targetUserId) async {
+    await _initSocket();
+    await _apiService.dio.post('/users/unblock/$targetUserId');
+  }
+
   void reset() {
     _socket?.dispose();
     _socket = null;

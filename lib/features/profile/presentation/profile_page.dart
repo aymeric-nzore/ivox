@@ -37,6 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isUploadingPhoto = false;
   bool _notificationsEnabled = true;
   bool _isTogglingNotifications = false;
+  bool _isTogglingProfileVisibility = false;
 
   Future<void> _handleLogout() async {
     try {
@@ -265,6 +266,38 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _toggleProfileVisibility(bool value) async {
+    if (_isTogglingProfileVisibility) return;
+    setState(() => _isTogglingProfileVisibility = true);
+    try {
+      await _authService.updateProfilePrivacy(value);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              value
+                  ? 'Profil passe en public'
+                  : 'Profil passe en prive',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur mise a jour visibilite: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isTogglingProfileVisibility = false);
+      }
+    }
+  }
+
   @override
   void dispose() {
     _usernameController.dispose();
@@ -310,6 +343,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 final photoUrl = data != null
                     ? data['photoUrl'] as String?
                     : null;
+                final isPublicProfile =
+                  (data != null ? data['isPublicProfile'] as bool? : null) ??
+                  true;
 
                 if (!_isEditingName && _usernameController.text != username) {
                   _usernameController.text = username;
@@ -563,6 +599,32 @@ class _ProfilePageState extends State<ProfilePage> {
                               onChanged: _isTogglingNotifications
                                   ? null
                                   : _toggleNotifications,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 8),
+                    Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          children: [
+                            const Text('Profil public (visible dans utilisateurs)'),
+                            const Spacer(),
+                            CupertinoSwitch(
+                              value: isPublicProfile,
+                              onChanged: _isTogglingProfileVisibility
+                                  ? null
+                                  : _toggleProfileVisibility,
                             ),
                           ],
                         ),

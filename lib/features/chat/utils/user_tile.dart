@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:popover/popover.dart';
 
 class UserTile extends StatelessWidget {
@@ -50,45 +51,31 @@ class UserTile extends StatelessWidget {
             ),
             IconButton(
               onPressed: () => showPopover(
-                height: 80,
+                height: 96,
                 width: 220,
                 direction: PopoverDirection.bottom,
                 context: context,
                 bodyBuilder: (context) => Column(
                   children: [
-                    GestureDetector(
-                      onTap: onAddFriend,
-                      child: Container(
-                        color: Colors.blue.shade200,
-                        height: 40,
-                        width: double.infinity,
-                        child: Row(
-                          spacing: 6,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            SizedBox(width: 6),
-                            Icon(Icons.person_sharp),
-                            Text("Ajoutez en amis"),
-                          ],
-                        ),
-                      ),
+                    _ActionRow(
+                      icon: Icons.person_add_alt_1,
+                      label: 'Ajoutez en amis',
+                      color: Colors.blue.shade200,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.of(context).pop();
+                        onAddFriend?.call();
+                      },
                     ),
-                    GestureDetector(
-                      onTap: onBlockUser,
-                      child: Container(
-                        color: Colors.red.shade400,
-                        height: 40,
-                        width: double.infinity,
-                        child: Row(
-                          spacing: 6,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            SizedBox(width: 6),
-                            Icon(Icons.block),
-                            Text("Bloquez cet utilisateur"),
-                          ],
-                        ),
-                      ),
+                    _ActionRow(
+                      icon: Icons.block,
+                      label: 'Bloquez cet utilisateur',
+                      color: Colors.red.shade300,
+                      onTap: () {
+                        HapticFeedback.mediumImpact();
+                        Navigator.of(context).pop();
+                        onBlockUser?.call();
+                      },
                     ),
                   ],
                 ),
@@ -96,6 +83,42 @@ class UserTile extends StatelessWidget {
               icon: Icon(Icons.more_vert, color: colorScheme.onSurfaceVariant),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionRow({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Material(
+        color: color,
+        child: InkWell(
+          onTap: onTap,
+          splashColor: Colors.white.withValues(alpha: 0.35),
+          highlightColor: Colors.black.withValues(alpha: 0.08),
+          child: Row(
+            children: [
+              const SizedBox(width: 8),
+              Icon(icon),
+              const SizedBox(width: 8),
+              Text(label),
+            ],
+          ),
         ),
       ),
     );

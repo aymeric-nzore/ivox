@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:ivox/features/chat/services/chat_services.dart';
 
 class ChatPage extends StatefulWidget {
@@ -244,10 +245,21 @@ class _ChatPageState extends State<ChatPage> {
       context: context,
       builder: (context) {
         return SafeArea(
-          child: ListTile(
-            leading: const Icon(Icons.report),
-            title: const Text('Signaler ce message'),
-            onTap: () => Navigator.pop(context, true),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.red.shade600,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 48),
+              ),
+              onPressed: () {
+                HapticFeedback.mediumImpact();
+                Navigator.pop(context, true);
+              },
+              icon: const Icon(Icons.report),
+              label: const Text('Signaler ce message'),
+            ),
           ),
         );
       },

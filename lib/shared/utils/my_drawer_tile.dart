@@ -13,6 +13,10 @@ class MyDrawerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(leading: icon, title: Text(title));
+    return ListTile(
+      leading: icon,
+      title: Text(title),
+      onTap: onTap,
+    );
   }
 }

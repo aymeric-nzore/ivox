@@ -64,6 +64,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     final photoUrl = user['photoUrl']?.toString();
     final level = _toInt(user['level']);
     final xp = _toInt(user['xp']);
+    final coins = _toInt(user['coins']);
     final isTopThree = rank <= 3;
     final frameColor = _podiumColor(rank);
 
@@ -99,7 +100,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             backgroundImage:
                 photoUrl != null && photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
             child: photoUrl == null || photoUrl.isEmpty
-                ? Text(username.isNotEmpty ? username[0].toUpperCase() : 'U')
+              ? const Icon(Icons.person)
                 : null,
           ),
           const SizedBox(width: 12),
@@ -117,6 +118,28 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             children: [
               Text('Lv $level', style: const TextStyle(fontWeight: FontWeight.bold)),
               Text('XP $xp', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+            ],
+          ),
+          const SizedBox(width: 8),
+          Column(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFD54F),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.attach_money,
+                  size: 16,
+                  color: Color(0xFF6D4C41),
+                ),
+              ),
+              Text(
+                "$coins",
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
+              ),
             ],
           ),
         ],

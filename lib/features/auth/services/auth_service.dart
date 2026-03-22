@@ -40,6 +40,7 @@ class AuthService {
     'photoUrl': null,
     'level': 1,
     'xp': 0,
+    'isPublicProfile': true,
   };
 
   AppUser? getUser() => _currentUser;
@@ -77,6 +78,7 @@ class AuthService {
         'photoUrl': data['photoUrl'],
         'level': data['level'] ?? 1,
         'xp': data['xp'] ?? 0,
+        'isPublicProfile': data['isPublicProfile'] ?? true,
       };
       _pushProfile();
     } catch (_) {
@@ -101,6 +103,18 @@ class AuthService {
 
   Future<void> updatePhotoUrl(String photoUrl) async {
     _currentProfile = {..._currentProfile, 'photoUrl': photoUrl};
+    _pushProfile();
+  }
+
+  Future<void> updateProfilePrivacy(bool isPublicProfile) async {
+    await _apiService.dio.patch(
+      '/auth/privacy',
+      data: {'isPublicProfile': isPublicProfile},
+    );
+    _currentProfile = {
+      ..._currentProfile,
+      'isPublicProfile': isPublicProfile,
+    };
     _pushProfile();
   }
 
@@ -140,6 +154,7 @@ class AuthService {
       'photoUrl': null,
       'level': 1,
       'xp': 0,
+      'isPublicProfile': true,
     };
     _pushProfile();
   }
