@@ -22,12 +22,12 @@ class MainBottomNavBar extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         decoration: BoxDecoration(
           color: isDark
-              ? colorScheme.surfaceContainerHighest.withOpacity(0.95)
+              ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.95)
               : colorScheme.surface,
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.2 : 0.12),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.12),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),

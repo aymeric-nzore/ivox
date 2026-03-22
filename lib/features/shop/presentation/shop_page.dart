@@ -17,7 +17,6 @@ class _ShopPageState extends State<ShopPage> {
   late Future<Map<String, List<Map<String, dynamic>>>> _shopFuture;
   final Set<String> _ownedSongIds = <String>{};
   final Set<String> _buyingItemIds = <String>{};
-  String? _playingSongId;
 
   @override
   void initState() {
@@ -33,6 +32,7 @@ class _ShopPageState extends State<ShopPage> {
     await Future.wait([
       _shopFuture,
       _loadOwnedItems(),
+      _authService.refreshProfile(),
     ]);
   }
 
@@ -99,20 +99,27 @@ class _ShopPageState extends State<ShopPage> {
 
   Future<void> _toggleSongPlayback({
     required String itemId,
+    required String title,
     required String assetUrl,
   }) async {
     if (assetUrl.isEmpty) return;
 
     try {
-      final isPlaying = await _songPlayerService.togglePlayback(assetUrl);
+      await _songPlayerService.playOrToggle(
+        itemId: itemId,
+        title: title,
+        url: assetUrl,
+      );
       if (!mounted) return;
-      setState(() {
-        _playingSongId = isPlaying ? itemId : null;
-      });
-    } catch (_) {
+      setState(() {});
+    } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Impossible de lire ce son")),
+        SnackBar(
+          content: Text(
+            "Impossible de lire ce son: ${error.toString().replaceFirst('Exception: ', '')}",
+          ),
+        ),
       );
     }
   }
@@ -184,7 +191,7 @@ class _ShopPageState extends State<ShopPage> {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 270,
+          height: 310,
           child: items.isEmpty
               ? Container(
                   alignment: Alignment.center,
@@ -211,7 +218,9 @@ class _ShopPageState extends State<ShopPage> {
                     final isSong = type == "song";
                     final isOwnedSong = isSong && _ownedSongIds.contains(itemId);
                     final isBuying = _buyingItemIds.contains(itemId);
-                    final isPlaying = _playingSongId == itemId;
+                    final isPlaying =
+                      _songPlayerService.currentItemId == itemId &&
+                      _songPlayerService.isPlaying;
 
                     return Container(
                       width: 220,
@@ -266,130 +275,108 @@ class _ShopPageState extends State<ShopPage> {
                                     ),
                                   ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                if (description.isNotEmpty)
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    description,
+                                    title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: colorScheme.onSurfaceVariant,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                const SizedBox(height: 6),
-                                Wrap(
-                                  spacing: 6,
-                                  runSpacing: 6,
-                                  children: [
-                                    if (duration > 0)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: colorScheme.primary.withValues(alpha: 0.09),
-                                          borderRadius: BorderRadius.circular(20),
-                                        ),
-                                        child: Text(
-                                          "${duration}s",
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            color: colorScheme.primary,
-                                          ),
-                                        ),
-                                      ),
-                                    if (category.isNotEmpty)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: colorScheme.surfaceContainerHighest,
-                                          borderRadius: BorderRadius.circular(20),
-                                        ),
-                                        child: Text(
-                                          category,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: colorScheme.onSurfaceVariant,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFFFF7CC),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          const Icon(Icons.monetization_on_rounded, size: 14, color: Color(0xFFA46A00)),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            "$price",
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              color: Color(0xFFA46A00),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Icon(Icons.shopping_bag_outlined, size: 15, color: colorScheme.onSurfaceVariant),
-                                    const SizedBox(width: 4),
+                                  const SizedBox(height: 2),
+                                  if (description.isNotEmpty)
                                     Text(
-                                      "$buyCount",
+                                      description,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: colorScheme.onSurfaceVariant,
-                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: isOwnedSong
-                                      ? OutlinedButton.icon(
-                                          onPressed: () => _toggleSongPlayback(
-                                            itemId: itemId,
-                                            assetUrl: imageUrl,
-                                          ),
-                                          icon: Icon(
-                                            isPlaying
-                                                ? Icons.pause_circle_filled_rounded
-                                                : Icons.play_circle_fill_rounded,
-                                          ),
-                                          label: Text(isPlaying ? "Pause" : "Jouer"),
-                                        )
-                                      : ElevatedButton(
-                                          onPressed: isBuying
-                                              ? null
-                                              : () => _buyItem(type, item),
-                                          child: Text(isBuying ? "Achat..." : "Acheter"),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    [
+                                      if (duration > 0) "${duration}s",
+                                      if (category.isNotEmpty) category,
+                                    ].join(" • "),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: colorScheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFFF7CC),
+                                          borderRadius: BorderRadius.circular(20),
                                         ),
-                                ),
-                              ],
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.monetization_on_rounded, size: 14, color: Color(0xFFA46A00)),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              "$price",
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                color: Color(0xFFA46A00),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Icon(Icons.shopping_bag_outlined, size: 15, color: colorScheme.onSurfaceVariant),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        "$buyCount",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: colorScheme.onSurfaceVariant,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: isOwnedSong
+                                        ? OutlinedButton.icon(
+                                            onPressed: () => _toggleSongPlayback(
+                                              itemId: itemId,
+                                              title: title,
+                                              assetUrl: imageUrl,
+                                            ),
+                                            icon: Icon(
+                                              isPlaying
+                                                  ? Icons.pause_circle_filled_rounded
+                                                  : Icons.play_circle_fill_rounded,
+                                            ),
+                                            label: Text(isPlaying ? "Pause" : "Jouer"),
+                                          )
+                                        : ElevatedButton(
+                                            onPressed: isBuying
+                                                ? null
+                                                : () => _buyItem(type, item),
+                                            child: Text(isBuying ? "Achat..." : "Acheter"),
+                                          ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -400,12 +387,6 @@ class _ShopPageState extends State<ShopPage> {
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _songPlayerService.stop();
-    super.dispose();
   }
 
   @override

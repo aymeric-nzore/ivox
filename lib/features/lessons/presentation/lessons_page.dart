@@ -110,17 +110,13 @@ class _LessonsPageState extends State<LessonsPage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
+                        const SizedBox(width: 12),
                         Icon(
                           Icons.monetization_on_rounded,
                           size: 14,
                           color: Colors.amber[700],
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 3),
                         Text(
                           "$coins",
                           style: TextStyle(

@@ -40,6 +40,12 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isTogglingNotifications = false;
   bool _isTogglingProfileVisibility = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _authService.refreshProfile();
+  }
+
   Future<void> _handleLogout() async {
     try {
       await _apiAuthService.logout();

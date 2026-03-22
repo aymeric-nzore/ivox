@@ -32,6 +32,9 @@ class AuthService {
   final ApiService _apiService = ApiService();
   final StreamController<UserDocSnapshot> _userController =
       StreamController<UserDocSnapshot>.broadcast();
+  Timer? _profileRefreshTimer;
+  bool _isBootstrapping = false;
+  bool _hasBootstrapped = false;
 
   AppUser? _currentUser;
   Map<String, dynamic> _currentProfile = {
@@ -47,16 +50,36 @@ class AuthService {
   AppUser? getUser() => _currentUser;
 
   Stream<UserDocSnapshot> userDocStream() {
-    _bootstrap();
+    _startProfileRefreshLoop();
+    if (!_hasBootstrapped && !_isBootstrapping) {
+      unawaited(_bootstrap());
+    }
     return _userController.stream;
   }
 
+  void _startProfileRefreshLoop() {
+    _profileRefreshTimer ??= Timer.periodic(const Duration(seconds: 12), (_) {
+      _bootstrap();
+    });
+  }
+
+  Future<void> refreshProfile() async {
+    await _bootstrap();
+  }
+
   Future<void> _bootstrap() async {
+    if (_isBootstrapping) {
+      return;
+    }
+
+    _isBootstrapping = true;
     await _apiService.init();
     final token = await _apiService.getToken();
     if (token == null || token.isEmpty) {
       _currentUser = null;
       _pushProfile();
+      _hasBootstrapped = true;
+      _isBootstrapping = false;
       return;
     }
 
@@ -83,8 +106,11 @@ class AuthService {
         'isPublicProfile': data['isPublicProfile'] ?? true,
       };
       _pushProfile();
+      _hasBootstrapped = true;
     } catch (_) {
       // Keep previous cached user/profile when network is unavailable.
+    } finally {
+      _isBootstrapping = false;
     }
   }
 
@@ -164,6 +190,8 @@ class AuthService {
   }
 
   Future<void> logout() async {
+    _profileRefreshTimer?.cancel();
+    _profileRefreshTimer = null;
     _currentUser = null;
     _currentProfile = {
       'username': 'Utilisateur',

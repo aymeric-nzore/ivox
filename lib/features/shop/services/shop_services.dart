@@ -4,6 +4,17 @@ import 'package:ivox/core/services/api_service.dart';
 class ShopServices {
   final ApiService _apiService = ApiService();
 
+  List<Map<String, dynamic>> _toMapList(dynamic data) {
+    if (data is! List) {
+      return <Map<String, dynamic>>[];
+    }
+
+    return data
+        .whereType<Map>()
+        .map((item) => item.map((k, v) => MapEntry(k.toString(), v)))
+        .toList();
+  }
+
   String _extractErrorMessage(dynamic data, [String fallback = "Erreur reseau"]) {
     if (data is Map<String, dynamic>) {
       final message = data["message"];
@@ -44,17 +55,27 @@ class ShopServices {
   }
 
   Future<Map<String, List<Map<String, dynamic>>>> getShopData() async {
-    final results = await Future.wait([
-      getItemsByType("song"),
-      getItemsByType("animation"),
-      getItemsByType("avatar"),
-    ]);
+    await _apiService.init();
 
-    return {
-      "song": results[0],
-      "animation": results[1],
-      "avatar": results[2],
-    };
+    try {
+      final responses = await Future.wait([
+        _apiService.dio.get("/shopItem/", queryParameters: {"type": "song"}),
+        _apiService.dio.get("/shopItem/", queryParameters: {"type": "animation"}),
+        _apiService.dio.get("/shopItem/", queryParameters: {"type": "avatar"}),
+      ]);
+
+      return {
+        "song": _toMapList(responses[0].data),
+        "animation": _toMapList(responses[1].data),
+        "avatar": _toMapList(responses[2].data),
+      };
+    } catch (_) {
+      return {
+        "song": const <Map<String, dynamic>>[],
+        "animation": const <Map<String, dynamic>>[],
+        "avatar": const <Map<String, dynamic>>[],
+      };
+    }
   }
 
   Future<List<Map<String, dynamic>>> getOwnedItems() async {
