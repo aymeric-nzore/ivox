@@ -1,5 +1,6 @@
-import 'package:just_audio/just_audio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ivox/core/services/audio_background_state.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 
 class SongPlayerService {
@@ -12,8 +13,6 @@ class SongPlayerService {
   String? _currentItemId;
   String? _currentTitle;
   final ValueNotifier<int> revisionNotifier = ValueNotifier<int>(0);
-  bool _backgroundInitDone = false;
-  bool _backgroundInitFailed = false;
 
   AudioPlayer get player => _player;
   Stream<Duration> get positionStream => _player.positionStream;
@@ -26,50 +25,47 @@ class SongPlayerService {
     revisionNotifier.value = revisionNotifier.value + 1;
   }
 
-  Future<void> _ensureBackgroundAudioInit() async {
-    if (_backgroundInitDone || _backgroundInitFailed) {
-      return;
-    }
-
-    try {
-      await JustAudioBackground.init(
-        androidNotificationChannelId: 'com.ivox.app.audio',
-        androidNotificationChannelName: 'Lecture audio Ivox',
-        androidNotificationOngoing: true,
-      );
-      _backgroundInitDone = true;
-    } catch (_) {
-      _backgroundInitFailed = true;
-    }
-  }
-
   String _normalizeUrl(String url) {
     final trimmed = url.trim();
-    if (trimmed.startsWith("//")) {
-      return "https:$trimmed";
+    if (trimmed.startsWith('//')) {
+      return 'https:$trimmed';
     }
     return trimmed;
   }
 
   String _toCloudinaryMp3Url(String url) {
-    if (!url.contains("res.cloudinary.com")) {
+    if (!url.contains('res.cloudinary.com')) {
       return url;
     }
-
-    if (url.contains("/upload/f_mp3/")) {
+    if (url.contains('/upload/f_mp3/')) {
       return url;
     }
-
-    return url.replaceFirst("/upload/", "/upload/f_mp3/");
+    return url.replaceFirst('/upload/', '/upload/f_mp3/');
   }
 
   String _toCloudinaryAudioFallbackUrl(String url) {
-    if (!url.contains("res.cloudinary.com")) {
+    if (!url.contains('res.cloudinary.com')) {
       return url;
     }
+    return url.replaceFirst('/upload/', '/upload/f_mp3,ac_none/');
+  }
 
-    final withAudioCodec = url.replaceFirst("/upload/", "/upload/f_mp3,ac_none/");
-    return withAudioCodec;
+  Future<void> _setSource(String sourceUrl, MediaItem mediaItem) async {
+    if (AudioBackgroundState.isInitialized) {
+      try {
+        await _player.setAudioSource(
+          AudioSource.uri(
+            Uri.parse(sourceUrl),
+            tag: mediaItem,
+          ),
+        );
+        return;
+      } catch (_) {
+        // Fall back to plain URL mode if media handler is not ready.
+      }
+    }
+
+    await _player.setUrl(sourceUrl);
   }
 
   Future<void> _setSourceWithFallback({
@@ -87,40 +83,26 @@ class SongPlayerService {
       artist: 'Ivox',
     );
 
-    Future<void> setPrimary(String sourceUrl) async {
-      if (_backgroundInitDone) {
-        await _player.setAudioSource(
-          AudioSource.uri(
-            Uri.parse(sourceUrl),
-            tag: mediaItem,
-          ),
-        );
-      } else {
-        await _player.setUrl(sourceUrl);
-      }
-    }
-
     try {
-      await setPrimary(encodedNormalized);
-    } catch (_) {
-      final fallbackUrl = _toCloudinaryMp3Url(normalized);
-      final encodedFallback = Uri.encodeFull(fallbackUrl);
-      if (encodedFallback != encodedNormalized) {
-        try {
-          await setPrimary(encodedFallback);
-          return;
-        } catch (_) {}
-      }
+      await _setSource(encodedNormalized, mediaItem);
+      return;
+    } catch (_) {}
 
-      final audioFallback = _toCloudinaryAudioFallbackUrl(normalized);
-      final encodedAudioFallback = Uri.encodeFull(audioFallback);
-      if (encodedAudioFallback != encodedNormalized) {
-        await setPrimary(encodedAudioFallback);
+    final fallbackMp3 = Uri.encodeFull(_toCloudinaryMp3Url(normalized));
+    if (fallbackMp3 != encodedNormalized) {
+      try {
+        await _setSource(fallbackMp3, mediaItem);
         return;
-      }
-
-      rethrow;
+      } catch (_) {}
     }
+
+    final fallbackAudio = Uri.encodeFull(_toCloudinaryAudioFallbackUrl(normalized));
+    if (fallbackAudio != encodedNormalized) {
+      await _setSource(fallbackAudio, mediaItem);
+      return;
+    }
+
+    throw Exception('Source audio invalide');
   }
 
   Future<bool> playOrToggle({
@@ -128,8 +110,6 @@ class SongPlayerService {
     required String title,
     required String url,
   }) async {
-    await _ensureBackgroundAudioInit();
-
     if (_currentItemId == itemId && _player.playing) {
       await _player.pause();
       _notify();

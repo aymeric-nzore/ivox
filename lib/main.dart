@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ivox/core/services/audio_background_state.dart';
 import 'package:ivox/core/theme/theme_provider.dart';
 import 'package:ivox/splash_screen.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -7,13 +8,13 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Keep startup safe while ensuring background media controls are available.
   try {
     await JustAudioBackground.init(
       androidNotificationChannelId: 'com.ivox.app.audio',
       androidNotificationChannelName: 'Lecture audio Ivox',
       androidNotificationOngoing: true,
-    ).timeout(const Duration(seconds: 3));
+    );
+    AudioBackgroundState.isInitialized = true;
   } catch (_) {}
 
   runApp(const MyApp());

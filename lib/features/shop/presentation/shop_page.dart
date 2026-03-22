@@ -156,6 +156,25 @@ class _ShopPageState extends State<ShopPage> {
     }
   }
 
+  bool _isLikelyImageUrl(String url) {
+    if (url.isEmpty) {
+      return false;
+    }
+
+    final normalized = url.toLowerCase();
+    if (normalized.contains('/video/upload/') ||
+        normalized.contains('/raw/upload/')) {
+      return false;
+    }
+
+    if (normalized.contains('/image/upload/')) {
+      return true;
+    }
+
+    return RegExp(r'\.(png|jpe?g|webp|gif|bmp|heic|heif)(\?|$)')
+        .hasMatch(normalized);
+  }
+
   Widget _buildSection(
     BuildContext context,
     String type,
@@ -213,6 +232,7 @@ class _ShopPageState extends State<ShopPage> {
                     final duration = _toInt(item["duration"]);
                     final category = (item["categorie"] ?? "").toString();
                     final imageUrl = (item["assetUrl"] ?? "").toString();
+                    final canRenderImage = _isLikelyImageUrl(imageUrl);
                     final itemId = (item["_id"] ?? "").toString();
                     final buyCount = _toInt(item["buyCount"]);
                     final isSong = type == "song";
@@ -249,7 +269,7 @@ class _ShopPageState extends State<ShopPage> {
                                 bottom: Radius.circular(12),
                               ),
                             ),
-                            child: imageUrl.isNotEmpty
+                            child: canRenderImage
                                 ? ClipRRect(
                                     borderRadius: const BorderRadius.vertical(
                                       top: Radius.circular(16),
