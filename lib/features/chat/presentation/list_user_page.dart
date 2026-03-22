@@ -25,19 +25,38 @@ class _ListUserPageState extends State<ListUserPage> {
   bool _isDrawerOpened = false;
   late Future<List<ChatUser>> _usersFuture;
   StreamSubscription<Map<String, dynamic>>? _appNotificationSubscription;
+  int _pendingFriendRequests = 0;
 
   @override
   void initState() {
     super.initState();
     _usersFuture = _chatService.getUsers();
+    _syncFriendRequestBadge();
     _appNotificationSubscription = _chatService.appNotifications.listen((notification) {
       if (!mounted) return;
       final type = (notification['type'] ?? '').toString();
       if (type == 'friend_request') {
         final fromUsername =
             (notification['fromUsername'] ?? 'Quelqu\'un').toString();
+        setState(() {
+          _pendingFriendRequests += 1;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Nouvelle demande d\'ami de $fromUsername')),
+        );
+      } else if (type == 'friend_request_response') {
+        final fromUsername =
+            (notification['fromUsername'] ?? 'Utilisateur').toString();
+        final action = (notification['action'] ?? 'respond').toString();
+        final accepted = action == 'accept';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              accepted
+                  ? '$fromUsername a accepte votre demande d\'ami'
+                  : '$fromUsername a refuse votre demande d\'ami',
+            ),
+          ),
         );
       }
     });
@@ -55,6 +74,20 @@ class _ListUserPageState extends State<ListUserPage> {
       setState(() {
         _usersFuture = Future.value(users);
       });
+    }
+    await _syncFriendRequestBadge();
+  }
+
+  Future<void> _syncFriendRequestBadge() async {
+    try {
+      final payload = await _chatService.getFriendRequests();
+      final received = payload['received'];
+      if (!mounted) return;
+      setState(() {
+        _pendingFriendRequests = received is List ? received.length : 0;
+      });
+    } catch (_) {
+      // Ignore badge refresh failures and keep existing count.
     }
   }
 
@@ -93,68 +126,245 @@ class _ListUserPageState extends State<ListUserPage> {
     }
   }
 
-  Future<void> _showFriendRequests() async {
+  Future<void> _showFriendsAndRequests() async {
     try {
       final payload = await _chatService.getFriendRequests();
-      final received = (payload['received'] as List?)
+      List<Map<String, dynamic>> received = (payload['received'] as List?)
+              ?.map((e) => (e as Map).map((k, v) => MapEntry(k.toString(), v)))
+              .toList() ??
+          <Map<String, dynamic>>[];
+      List<Map<String, dynamic>> sent = (payload['sent'] as List?)
+              ?.map((e) => (e as Map).map((k, v) => MapEntry(k.toString(), v)))
+              .toList() ??
+          <Map<String, dynamic>>[];
+      List<Map<String, dynamic>> friends = (payload['friends'] as List?)
               ?.map((e) => (e as Map).map((k, v) => MapEntry(k.toString(), v)))
               .toList() ??
           <Map<String, dynamic>>[];
 
       if (!mounted) return;
+      setState(() {
+        _pendingFriendRequests = received.length;
+      });
 
       await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         builder: (context) {
-          if (received.isEmpty) {
-            return const SafeArea(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('Aucune demande d\'ami en attente'),
-              ),
-            );
-          }
-
           return SafeArea(
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: received.length,
-              itemBuilder: (context, index) {
-                final item = received[index];
-                final requesterId = (item['id'] ?? '').toString();
-                final username = (item['username'] ?? 'Utilisateur').toString();
+            child: DefaultTabController(
+              length: 3,
+              child: StatefulBuilder(
+                builder: (context, setModalState) {
+                  Future<void> handleResponse({
+                    required String requesterId,
+                    required bool accept,
+                  }) async {
+                    await _chatService.respondFriendRequest(
+                      requesterId,
+                      accept: accept,
+                    );
+                    final refreshed = await _chatService.getFriendRequests();
+                    received = (refreshed['received'] as List?)
+                            ?.map(
+                              (e) =>
+                                  (e as Map).map((k, v) => MapEntry(k.toString(), v)),
+                            )
+                            .toList() ??
+                        <Map<String, dynamic>>[];
+                    sent = (refreshed['sent'] as List?)
+                            ?.map(
+                              (e) =>
+                                  (e as Map).map((k, v) => MapEntry(k.toString(), v)),
+                            )
+                            .toList() ??
+                        <Map<String, dynamic>>[];
+                    friends = (refreshed['friends'] as List?)
+                            ?.map(
+                              (e) =>
+                                  (e as Map).map((k, v) => MapEntry(k.toString(), v)),
+                            )
+                            .toList() ??
+                        <Map<String, dynamic>>[];
 
-                return ListTile(
-                  title: Text(username),
-                  subtitle: Text((item['email'] ?? '').toString()),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red),
-                        onPressed: () async {
-                          final navigator = Navigator.of(context);
-                          await _chatService.respondFriendRequest(
-                            requesterId,
-                            accept: false,
-                          );
-                          navigator.pop();
-                        },
+                    if (!mounted) return;
+                    setState(() {
+                      _pendingFriendRequests = received.length;
+                    });
+                    setModalState(() {});
+                    await _refreshUsers();
+                  }
+
+                  Widget buildAvatar(Map<String, dynamic> item) {
+                    final photoUrl = (item['photoUrl'] ?? '').toString();
+                    return CircleAvatar(
+                      radius: 18,
+                      backgroundImage: photoUrl.isNotEmpty
+                          ? NetworkImage(photoUrl)
+                          : null,
+                      child: photoUrl.isEmpty ? const Icon(Icons.person) : null,
+                    );
+                  }
+
+                  return SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.8,
+                    child: Column(
+                      children: [
+                        const TabBar(
+                          tabs: [
+                            Tab(text: 'Amis'),
+                            Tab(text: 'Recues'),
+                            Tab(text: 'Envoyees'),
+                          ],
+                        ),
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              friends.isEmpty
+                                  ? const Center(child: Text('Aucun ami pour le moment'))
+                                  : ListView.builder(
+                                      itemCount: friends.length,
+                                      itemBuilder: (context, index) {
+                                        final item = friends[index];
+                                        return ListTile(
+                                          leading: buildAvatar(item),
+                                          title: Text((item['username'] ?? 'Utilisateur').toString()),
+                                          subtitle: Text(
+                                            ((item['status'] ?? 'offline')
+                                                    .toString()
+                                                    .toLowerCase() ==
+                                                'online')
+                                                ? 'En ligne'
+                                                : 'Hors ligne',
+                                          ),
+                                        );
+                                      },
+                                    ),
+                              received.isEmpty
+                                  ? const Center(
+                                      child: Text('Aucune demande en attente'),
+                                    )
+                                  : ListView.builder(
+                                      itemCount: received.length,
+                                      itemBuilder: (context, index) {
+                                        final item = received[index];
+                                        final requesterId = (item['id'] ?? '').toString();
+                                        return ListTile(
+                                          leading: buildAvatar(item),
+                                          title: Text((item['username'] ?? 'Utilisateur').toString()),
+                                          subtitle: Text((item['email'] ?? '').toString()),
+                                          trailing: Wrap(
+                                            spacing: 4,
+                                            children: [
+                                              IconButton(
+                                                tooltip: 'Refuser',
+                                                onPressed: () => handleResponse(
+                                                  requesterId: requesterId,
+                                                  accept: false,
+                                                ),
+                                                icon: const Icon(
+                                                  Icons.close,
+                                                  color: Colors.red,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                tooltip: 'Accepter',
+                                                onPressed: () => handleResponse(
+                                                  requesterId: requesterId,
+                                                  accept: true,
+                                                ),
+                                                icon: const Icon(
+                                                  Icons.check,
+                                                  color: Colors.green,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                              sent.isEmpty
+                                  ? const Center(
+                                      child: Text('Aucune demande envoyee'),
+                                    )
+                                  : ListView.builder(
+                                      itemCount: sent.length,
+                                      itemBuilder: (context, index) {
+                                        final item = sent[index];
+                                        return ListTile(
+                                          leading: buildAvatar(item),
+                                          title: Text((item['username'] ?? 'Utilisateur').toString()),
+                                          subtitle: const Text('En attente de reponse'),
+                                        );
+                                      },
+                                    ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur chargement demandes: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _showBlockedUsers() async {
+    try {
+      List<ChatUser> blockedUsers = await _chatService.getBlockedUsers();
+      if (!mounted) return;
+
+      await showModalBottomSheet<void>(
+        context: context,
+        builder: (context) {
+          return SafeArea(
+            child: StatefulBuilder(
+              builder: (context, setModalState) {
+                if (blockedUsers.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text('Aucun utilisateur bloque'),
+                  );
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: blockedUsers.length,
+                  itemBuilder: (context, index) {
+                    final user = blockedUsers[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage:
+                            user.photoUrl != null && user.photoUrl!.isNotEmpty
+                                ? NetworkImage(user.photoUrl!)
+                                : null,
+                        child: user.photoUrl == null || user.photoUrl!.isEmpty
+                            ? const Icon(Icons.person)
+                            : null,
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.check, color: Colors.green),
+                      title: Text(user.username),
+                      subtitle: Text(user.email),
+                      trailing: OutlinedButton(
                         onPressed: () async {
-                          final navigator = Navigator.of(context);
-                          await _chatService.respondFriendRequest(
-                            requesterId,
-                            accept: true,
-                          );
-                          navigator.pop();
+                          await _chatService.unblockUser(user.id);
+                          blockedUsers = await _chatService.getBlockedUsers();
+                          setModalState(() {});
+                          await _refreshUsers();
                         },
+                        child: const Text('Debloquer'),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               },
             ),
@@ -164,7 +374,7 @@ class _ListUserPageState extends State<ListUserPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur chargement demandes: $e')),
+          SnackBar(content: Text('Erreur chargement bloquees: $e')),
         );
       }
     }
@@ -195,13 +405,21 @@ class _ListUserPageState extends State<ListUserPage> {
             ),
             MyDrawerTile(
               icon: Icon(Icons.person_sharp),
-              title: "Amis",
-              onTap: _showFriendRequests,
+              title: _pendingFriendRequests > 0
+                  ? "Amis ($_pendingFriendRequests)"
+                  : "Amis",
+              onTap: () async {
+                Navigator.of(context).pop();
+                await _showFriendsAndRequests();
+              },
             ),
             MyDrawerTile(
               icon: Icon(Icons.block),
               title: "Utilisateurs bloqués",
-              onTap: () {},
+              onTap: () async {
+                Navigator.of(context).pop();
+                await _showBlockedUsers();
+              },
             ),
           ],
         ),

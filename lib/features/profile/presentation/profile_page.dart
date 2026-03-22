@@ -275,9 +275,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              value
-                  ? 'Profil passe en public'
-                  : 'Profil passe en prive',
+              value ? 'Profil passe en public' : 'Profil passe en prive',
             ),
           ),
         );
@@ -344,8 +342,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     ? data['photoUrl'] as String?
                     : null;
                 final isPublicProfile =
-                  (data != null ? data['isPublicProfile'] as bool? : null) ??
-                  true;
+                    (data != null ? data['isPublicProfile'] as bool? : null) ??
+                    true;
 
                 if (!_isEditingName && _usernameController.text != username) {
                   _usernameController.text = username;
@@ -412,7 +410,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                         side: BorderSide(
-                          color: colorScheme.outline.withOpacity(0.2),
+                          color: colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Padding(
@@ -517,7 +515,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                         side: BorderSide(
-                          color: colorScheme.outline.withOpacity(0.2),
+                          color: colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Padding(
@@ -585,13 +583,18 @@ class _ProfilePageState extends State<ProfilePage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                         side: BorderSide(
-                          color: colorScheme.outline.withOpacity(0.2),
+                          color: colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(8),
                         child: Row(
+                          spacing: 8,
                           children: [
+                            Icon(
+                              FontAwesomeIcons.clock,
+                              color: colorScheme.primary,
+                            ),
                             Text("Activer les Notifications"),
                             const Spacer(),
                             CupertinoSwitch(
@@ -611,14 +614,16 @@ class _ProfilePageState extends State<ProfilePage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                         side: BorderSide(
-                          color: colorScheme.outline.withOpacity(0.2),
+                          color: colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(8),
                         child: Row(
                           children: [
-                            const Text('Profil public (visible dans utilisateurs)'),
+                            const Text(
+                              'Profil public (visible dans utilisateurs)',
+                            ),
                             const Spacer(),
                             CupertinoSwitch(
                               value: isPublicProfile,
@@ -637,7 +642,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                         side: BorderSide(
-                          color: colorScheme.outline.withOpacity(0.2),
+                          color: colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Padding(
@@ -674,7 +679,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                         side: BorderSide(
-                          color: colorScheme.outline.withOpacity(0.2),
+                          color: colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Padding(
