@@ -40,6 +40,7 @@ class AuthService {
     'photoUrl': null,
     'level': 1,
     'xp': 0,
+    'coins': 0,
     'isPublicProfile': true,
   };
 
@@ -78,6 +79,7 @@ class AuthService {
         'photoUrl': data['photoUrl'],
         'level': data['level'] ?? 1,
         'xp': data['xp'] ?? 0,
+        'coins': data['coins'] ?? 0,
         'isPublicProfile': data['isPublicProfile'] ?? true,
       };
       _pushProfile();
@@ -169,6 +171,7 @@ class AuthService {
       'photoUrl': null,
       'level': 1,
       'xp': 0,
+      'coins': 0,
       'isPublicProfile': true,
     };
     _pushProfile();

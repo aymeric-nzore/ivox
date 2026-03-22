@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/shop/services/shop_services.dart';
 import 'package:ivox/features/shop/services/song_player_service.dart';
 
@@ -10,6 +11,7 @@ class ShopPage extends StatefulWidget {
 }
 
 class _ShopPageState extends State<ShopPage> {
+  final AuthService _authService = AuthService();
   final ShopServices _shopServices = ShopServices();
   final SongPlayerService _songPlayerService = SongPlayerService();
   late Future<Map<String, List<Map<String, dynamic>>>> _shopFuture;
@@ -169,11 +171,20 @@ class _ShopPageState extends State<ShopPage> {
                 fontWeight: FontWeight.w700,
               ),
             ),
+            const Spacer(),
+            Text(
+              "${items.length} items",
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 210,
+          height: 270,
           child: items.isEmpty
               ? Container(
                   alignment: Alignment.center,
@@ -203,127 +214,183 @@ class _ShopPageState extends State<ShopPage> {
                     final isPlaying = _playingSongId == itemId;
 
                     return Container(
-                      width: 230,
-                      padding: const EdgeInsets.all(12),
+                      width: 220,
                       decoration: BoxDecoration(
                         color: colorScheme.surface,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: colorScheme.outlineVariant),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(12),
+                          Container(
+                            height: 118,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest,
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(16),
+                                bottom: Radius.circular(12),
                               ),
-                              child: imageUrl.isNotEmpty
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        imageUrl,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => Icon(
+                            ),
+                            child: imageUrl.isNotEmpty
+                                ? ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(16),
+                                      bottom: Radius.circular(12),
+                                    ),
+                                    child: Image.network(
+                                      imageUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) => Center(
+                                        child: Icon(
                                           icon,
-                                          size: 32,
+                                          size: 34,
                                           color: colorScheme.primary,
                                         ),
                                       ),
-                                    )
-                                  : Icon(
+                                    ),
+                                  )
+                                : Center(
+                                    child: Icon(
                                       icon,
-                                      size: 32,
+                                      size: 34,
                                       color: colorScheme.primary,
                                     ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          if (description.isNotEmpty)
-                            Text(
-                              description,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          if (duration > 0)
-                            Text(
-                              "Duree: ${duration}s",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          if (category.isNotEmpty)
-                            Text(
-                              category,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Icon(Icons.monetization_on_rounded, size: 16),
-                              const SizedBox(width: 4),
-                              Text(
-                                "$price",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const Spacer(),
-                              const Icon(Icons.shopping_bag_outlined, size: 15),
-                              const SizedBox(width: 4),
-                              Text(
-                                "$buyCount",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: isOwnedSong
-                                ? OutlinedButton.icon(
-                                    onPressed: () => _toggleSongPlayback(
-                                      itemId: itemId,
-                                      assetUrl: imageUrl,
-                                    ),
-                                    icon: Icon(
-                                      isPlaying
-                                          ? Icons.pause_circle_filled_rounded
-                                          : Icons.play_circle_fill_rounded,
-                                    ),
-                                    label: Text(isPlaying ? "Pause" : "Jouer"),
-                                  )
-                                : ElevatedButton(
-                                    onPressed: isBuying
-                                        ? null
-                                        : () => _buyItem(type, item),
-                                    child: Text(isBuying ? "Achat..." : "Acheter"),
                                   ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                if (description.isNotEmpty)
+                                  Text(
+                                    description,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: [
+                                    if (duration > 0)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.primary.withValues(alpha: 0.09),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          "${duration}s",
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: colorScheme.primary,
+                                          ),
+                                        ),
+                                      ),
+                                    if (category.isNotEmpty)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.surfaceContainerHighest,
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          category,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: colorScheme.onSurfaceVariant,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFFF7CC),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.monetization_on_rounded, size: 14, color: Color(0xFFA46A00)),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            "$price",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              color: Color(0xFFA46A00),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Icon(Icons.shopping_bag_outlined, size: 15, color: colorScheme.onSurfaceVariant),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "$buyCount",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: colorScheme.onSurfaceVariant,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: isOwnedSong
+                                      ? OutlinedButton.icon(
+                                          onPressed: () => _toggleSongPlayback(
+                                            itemId: itemId,
+                                            assetUrl: imageUrl,
+                                          ),
+                                          icon: Icon(
+                                            isPlaying
+                                                ? Icons.pause_circle_filled_rounded
+                                                : Icons.play_circle_fill_rounded,
+                                          ),
+                                          label: Text(isPlaying ? "Pause" : "Jouer"),
+                                        )
+                                      : ElevatedButton(
+                                          onPressed: isBuying
+                                              ? null
+                                              : () => _buyItem(type, item),
+                                          child: Text(isBuying ? "Achat..." : "Acheter"),
+                                        ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -344,7 +411,48 @@ class _ShopPageState extends State<ShopPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Boutique"), centerTitle: true),
+      appBar: AppBar(
+        title: const Text("Boutique"),
+        centerTitle: true,
+        actions: [
+          StreamBuilder(
+            stream: _authService.userDocStream(),
+            builder: (context, snapshot) {
+              final data = snapshot.data?.data();
+              final coins = _toInt(data?["coins"]);
+
+              return Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF7CC),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFE7D179)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.monetization_on_rounded,
+                        size: 16,
+                        color: Color(0xFFA46A00),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "$coins",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFA46A00),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
         future: _shopFuture,
         builder: (context, snapshot) {
@@ -364,6 +472,18 @@ class _ShopPageState extends State<ShopPage> {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Text(
+                    "Decouvre les meilleurs items et achete en un clic.",
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 _buildSection(context, "song", data["song"] ?? const []),
                 const SizedBox(height: 18),
                 _buildSection(context, "animation", data["animation"] ?? const []),

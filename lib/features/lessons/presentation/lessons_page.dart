@@ -89,6 +89,7 @@ class _LessonsPageState extends State<LessonsPage> {
               final data = snapshot.data?.data();
               final level = data?["level"] as int? ?? 1;
               final xp = data?["xp"] as int? ?? 0;
+              final coins = data?["coins"] as int? ?? 0;
               int requiredXp = 100 + (level * 25);
               double progress = xp / requiredXp;
 
@@ -111,6 +112,26 @@ class _LessonsPageState extends State<LessonsPage> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.monetization_on_rounded,
+                          size: 14,
+                          color: Colors.amber[700],
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          "$coins",
+                          style: TextStyle(
+                            color: Colors.amber[800],
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
                     Row(
                       children: [
                         Stack(
