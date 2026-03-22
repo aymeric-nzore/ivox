@@ -9,6 +9,7 @@ import 'package:ivox/features/auth/presentation/login_page.dart';
 import 'package:ivox/features/auth/services/api_auth_service.dart';
 import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/dictionnaire/presentation/dictionnaire_page.dart';
+import 'package:ivox/features/shop/presentation/shop_page.dart';
 import 'package:ivox/shared/widgets/main_bottom_nav_bar.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -719,7 +720,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => DictionaryScreen(),
+                              builder: (context) => ShopPage(),
                             ),
                           ),
                           child: Row(
