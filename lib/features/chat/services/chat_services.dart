@@ -71,22 +71,32 @@ class ChatServices {
       StreamController<List<ChatMessage>>.broadcast();
     final StreamController<Map<String, String>> _presenceController =
       StreamController<Map<String, String>>.broadcast();
+    final StreamController<Map<String, dynamic>> _appNotificationsController =
+      StreamController<Map<String, dynamic>>.broadcast();
 
   io.Socket? _socket;
   String? _currentUserId;
+  String? _activeToken;
   final Map<String, List<ChatMessage>> _messages = {};
   final Map<String, String> _userStatus = {};
 
   String? get currentUserId => _currentUserId;
+  Stream<Map<String, dynamic>> get appNotifications =>
+      _appNotificationsController.stream;
 
   Future<void> _initSocket() async {
-    if (_socket?.connected == true) return;
-
     await _apiService.init();
     final token = await _apiService.getToken();
     if (token == null || token.isEmpty) {
       throw Exception('Token manquant');
     }
+
+    // Reconnect socket when user session/token changed (logout/login new account).
+    if (_activeToken != null && _activeToken != token) {
+      reset();
+    }
+
+    if (_socket?.connected == true) return;
 
     final me = await _apiService.dio.get('/auth/me');
     final meData = _toMap(me.data);
@@ -147,7 +157,12 @@ class ChatServices {
       _presenceController.add(Map<String, String>.from(_userStatus));
     });
 
+    _socket!.on('app_notification', (data) {
+      _appNotificationsController.add(_toMap(data));
+    });
+
     _socket!.connect();
+    _activeToken = token;
   }
 
   Future<List<ChatUser>> getUsers() async {
@@ -226,6 +241,39 @@ class ChatServices {
       '/messages/$messageId/report',
       data: {'reason': reason ?? 'inappropriate'},
     );
+  }
+
+  Future<void> sendFriendRequest(String targetUserId) async {
+    await _initSocket();
+    await _apiService.dio.post('/users/friends/request/$targetUserId');
+  }
+
+  Future<Map<String, dynamic>> getFriendRequests() async {
+    await _initSocket();
+    final response = await _apiService.dio.get('/users/friends/requests');
+    return _toMap(response.data);
+  }
+
+  Future<void> respondFriendRequest(String requesterId, {required bool accept}) async {
+    await _initSocket();
+    await _apiService.dio.post(
+      '/users/friends/request/$requesterId/respond',
+      data: {'action': accept ? 'accept' : 'reject'},
+    );
+  }
+
+  Future<void> blockUser(String targetUserId) async {
+    await _initSocket();
+    await _apiService.dio.post('/users/block/$targetUserId');
+  }
+
+  void reset() {
+    _socket?.dispose();
+    _socket = null;
+    _currentUserId = null;
+    _activeToken = null;
+    _messages.clear();
+    _userStatus.clear();
   }
 
   String getUserStatus(String userId) {

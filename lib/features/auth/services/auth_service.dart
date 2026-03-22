@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
 import 'package:ivox/core/services/api_service.dart';
-import 'package:ivox/core/services/supabase_service.dart';
 
 class AppUser {
   final String uid;
@@ -30,7 +30,6 @@ class AuthService {
   factory AuthService() => _instance;
 
   final ApiService _apiService = ApiService();
-  final SupabaseService _supabaseService = SupabaseService();
   final StreamController<UserDocSnapshot> _userController =
       StreamController<UserDocSnapshot>.broadcast();
 
@@ -75,6 +74,9 @@ class AuthService {
         ..._currentProfile,
         'username': username,
         'email': email,
+        'photoUrl': data['photoUrl'],
+        'level': data['level'] ?? 1,
+        'xp': data['xp'] ?? 0,
       };
       _pushProfile();
     } catch (_) {
@@ -111,11 +113,23 @@ class AuthService {
       throw Exception('Utilisateur non connecté');
     }
 
-    return _supabaseService.uploadProfileImage(
-      bytes: bytes,
-      userId: user.uid,
-      fileName: fileName,
+    final formData = FormData.fromMap({
+      'image': MultipartFile.fromBytes(bytes, filename: fileName),
+    });
+
+    final response = await _apiService.dio.post(
+      '/auth/profile-image',
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
     );
+
+    final data = _toMap(response.data);
+    final photoUrl = (data['photoUrl'] ?? '').toString();
+    if (photoUrl.isEmpty) {
+      throw Exception('URL image manquante');
+    }
+
+    return photoUrl;
   }
 
   Future<void> logout() async {

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ivox/core/services/supabase_service.dart';
 import 'package:ivox/core/theme/theme_provider.dart';
 import 'package:ivox/splash_screen.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SupabaseService.initialize();
   runApp(const MyApp());
 }
 

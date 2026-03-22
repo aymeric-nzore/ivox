@@ -5,11 +5,15 @@ class UserTile extends StatelessWidget {
   final String text;
   final String? photoUrl;
   final VoidCallback onTap;
+  final VoidCallback? onAddFriend;
+  final VoidCallback? onBlockUser;
   const UserTile({
     super.key,
     required this.text,
     this.photoUrl,
     required this.onTap,
+    this.onAddFriend,
+    this.onBlockUser,
   });
 
   @override
@@ -23,7 +27,7 @@ class UserTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -53,6 +57,7 @@ class UserTile extends StatelessWidget {
                 bodyBuilder: (context) => Column(
                   children: [
                     GestureDetector(
+                      onTap: onAddFriend,
                       child: Container(
                         color: Colors.blue.shade200,
                         height: 40,
@@ -69,6 +74,7 @@ class UserTile extends StatelessWidget {
                       ),
                     ),
                     GestureDetector(
+                      onTap: onBlockUser,
                       child: Container(
                         color: Colors.red.shade400,
                         height: 40,

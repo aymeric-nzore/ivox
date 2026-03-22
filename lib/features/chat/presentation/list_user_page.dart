@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:ivox/features/chat/presentation/chat_page.dart';
 import 'package:ivox/features/chat/services/chat_services.dart';
 import 'package:ivox/features/chat/utils/user_tile.dart';
@@ -23,11 +24,29 @@ class _ListUserPageState extends State<ListUserPage> {
   final _chatService = ChatServices();
   bool _isDrawerOpened = false;
   late Future<List<ChatUser>> _usersFuture;
+  StreamSubscription<Map<String, dynamic>>? _appNotificationSubscription;
 
   @override
   void initState() {
     super.initState();
     _usersFuture = _chatService.getUsers();
+    _appNotificationSubscription = _chatService.appNotifications.listen((notification) {
+      if (!mounted) return;
+      final type = (notification['type'] ?? '').toString();
+      if (type == 'friend_request') {
+        final fromUsername =
+            (notification['fromUsername'] ?? 'Quelqu\'un').toString();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Nouvelle demande d\'ami de $fromUsername')),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _appNotificationSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _refreshUsers() async {
@@ -36,6 +55,118 @@ class _ListUserPageState extends State<ListUserPage> {
       setState(() {
         _usersFuture = Future.value(users);
       });
+    }
+  }
+
+  Future<void> _sendFriendRequest(ChatUser user) async {
+    try {
+      await _chatService.sendFriendRequest(user.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Demande envoyee a ${user.username}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur demande d\'ami: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _blockUser(ChatUser user) async {
+    try {
+      await _chatService.blockUser(user.id);
+      await _refreshUsers();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${user.username} bloque')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur blocage: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _showFriendRequests() async {
+    try {
+      final payload = await _chatService.getFriendRequests();
+      final received = (payload['received'] as List?)
+              ?.map((e) => (e as Map).map((k, v) => MapEntry(k.toString(), v)))
+              .toList() ??
+          <Map<String, dynamic>>[];
+
+      if (!mounted) return;
+
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          if (received.isEmpty) {
+            return const SafeArea(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Aucune demande d\'ami en attente'),
+              ),
+            );
+          }
+
+          return SafeArea(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: received.length,
+              itemBuilder: (context, index) {
+                final item = received[index];
+                final requesterId = (item['id'] ?? '').toString();
+                final username = (item['username'] ?? 'Utilisateur').toString();
+
+                return ListTile(
+                  title: Text(username),
+                  subtitle: Text((item['email'] ?? '').toString()),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        onPressed: () async {
+                          final navigator = Navigator.of(context);
+                          await _chatService.respondFriendRequest(
+                            requesterId,
+                            accept: false,
+                          );
+                          navigator.pop();
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.check, color: Colors.green),
+                        onPressed: () async {
+                          final navigator = Navigator.of(context);
+                          await _chatService.respondFriendRequest(
+                            requesterId,
+                            accept: true,
+                          );
+                          navigator.pop();
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur chargement demandes: $e')),
+        );
+      }
     }
   }
 
@@ -65,7 +196,7 @@ class _ListUserPageState extends State<ListUserPage> {
             MyDrawerTile(
               icon: Icon(Icons.person_sharp),
               title: "Amis",
-              onTap: () {},
+              onTap: _showFriendRequests,
             ),
             MyDrawerTile(
               icon: Icon(Icons.block),
@@ -116,6 +247,8 @@ class _ListUserPageState extends State<ListUserPage> {
     return UserTile(
       text: userData.username,
       photoUrl: userData.photoUrl,
+      onAddFriend: () => _sendFriendRequest(userData),
+      onBlockUser: () => _blockUser(userData),
       onTap: () {
         Navigator.push(
           context,

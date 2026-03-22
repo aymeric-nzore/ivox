@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:ivox/features/chat/services/chat_services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:ivox/core/services/api_service.dart';
 
@@ -8,6 +9,8 @@ class ApiAuthService {
   factory ApiAuthService() => _instance;
 
   final ApiService _apiService = ApiService();
+  static const String _googleServerClientId =
+      '647081602209-1buqnm1m66bg3ebjrbia9tcvfvf73l0p.apps.googleusercontent.com';
 
   String _extractToken(dynamic data) {
     if (data is Map<String, dynamic>) {
@@ -77,7 +80,9 @@ class ApiAuthService {
   //Google Auth
   Future<void> signInWithGoogle() async {
     try {
-      final googleUser = await GoogleSignIn().signIn();
+      final googleUser = await GoogleSignIn(
+        serverClientId: _googleServerClientId,
+      ).signIn();
       if (googleUser == null) {
         throw Exception('Connexion Google annulee');
       }
@@ -116,6 +121,7 @@ class ApiAuthService {
     } on DioException {
       // On nettoie le token local meme si l'appel API echoue.
     } finally {
+      ChatServices().reset();
       await _apiService.logout();
     }
   }
