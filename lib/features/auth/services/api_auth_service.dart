@@ -28,7 +28,11 @@ class ApiAuthService {
 
     if (responseData is Map<String, dynamic>) {
       final message = responseData['message'];
+      final detail = responseData['detail'];
       if (message is String && message.isNotEmpty) {
+        if (detail is String && detail.isNotEmpty) {
+          return Exception('$message ($detail)');
+        }
         return Exception(message);
       }
     }
@@ -80,9 +84,13 @@ class ApiAuthService {
   //Google Auth
   Future<void> signInWithGoogle() async {
     try {
-      final googleUser = await GoogleSignIn(
+      final googleSignIn = GoogleSignIn(
         serverClientId: _googleServerClientId,
-      ).signIn();
+      );
+
+      // Avoid stale cached sessions when previous sign-in state is corrupted.
+      await googleSignIn.signOut();
+      final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         throw Exception('Connexion Google annulee');
       }
@@ -110,7 +118,10 @@ class ApiAuthService {
       if (error is DioException) {
         throw _mapDioError(error);
       }
-      throw Exception('Connexion Google echouee');
+      if (error is Exception) {
+        rethrow;
+      }
+      throw Exception('Connexion Google echouee: $error');
     }
   }
 

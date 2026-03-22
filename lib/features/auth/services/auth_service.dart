@@ -107,15 +107,30 @@ class AuthService {
   }
 
   Future<void> updateProfilePrivacy(bool isPublicProfile) async {
-    await _apiService.dio.patch(
-      '/auth/privacy',
-      data: {'isPublicProfile': isPublicProfile},
-    );
-    _currentProfile = {
-      ..._currentProfile,
-      'isPublicProfile': isPublicProfile,
-    };
-    _pushProfile();
+    await _apiService.init();
+    final token = await _apiService.getToken();
+    print('DEBUG updateProfilePrivacy: token=$token');
+    
+    try {
+      final response = await _apiService.dio.patch(
+        '/auth/privacy',
+        data: {'isPublicProfile': isPublicProfile},
+      );
+      print('DEBUG updateProfilePrivacy success: $response');
+      _currentProfile = {
+        ..._currentProfile,
+        'isPublicProfile': isPublicProfile,
+      };
+      _pushProfile();
+    } on DioException catch (e) {
+      print('DEBUG updateProfilePrivacy DioException: ${e.message}');
+      print('DEBUG statusCode: ${e.response?.statusCode}');
+      print('DEBUG response: ${e.response?.data}');
+      throw Exception('${e.response?.data?['message'] ?? e.message ?? "Erreur reseau"}');
+    } catch (e) {
+      print('DEBUG updateProfilePrivacy error: $e');
+      throw Exception('$e');
+    }
   }
 
   Future<String> uploadProfileImage({

@@ -241,19 +241,40 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (!requestStatus.isGranted) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+          final result = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Activer les notifications'),
               content: const Text(
-                "Autorisation notifications refusée. Activez-la dans les paramètres.",
+                'Veuillez aller dans les paramètres de votre appareil et autoriser les notifications pour IVOX.',
               ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Annuler'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context, true);
+                    openAppSettings();
+                  },
+                  child: const Text('Ouvrir paramètres'),
+                ),
+              ],
             ),
           );
+          if (result != true) {
+            setState(() {
+              _notificationsEnabled = previousValue;
+              _isTogglingNotifications = false;
+            });
+          }
+        } else {
+          setState(() {
+            _notificationsEnabled = previousValue;
+            _isTogglingNotifications = false;
+          });
         }
-        await openAppSettings();
-        setState(() {
-          _notificationsEnabled = previousValue;
-          _isTogglingNotifications = false;
-        });
         return;
       }
     }
@@ -277,22 +298,27 @@ class _ProfilePageState extends State<ProfilePage> {
             content: Text(
               value ? 'Profil passe en public' : 'Profil passe en prive',
             ),
+            backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
+      final errorMsg = e.toString().replaceFirst('Exception: ', '');
+      print('DEBUG: Profile visibility toggle error: $errorMsg');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur mise a jour visibilite: $e'),
+            content: Text('Erreur: $errorMsg'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isTogglingProfileVisibility = false);
-      }
+      setState(() => _isTogglingProfileVisibility = false);
+      return;
+    }
+    if (mounted) {
+      setState(() => _isTogglingProfileVisibility = false);
     }
   }
 
@@ -592,7 +618,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           spacing: 8,
                           children: [
                             Icon(
-                              FontAwesomeIcons.clock,
+                              FontAwesomeIcons.alarmClock,
                               color: colorScheme.primary,
                             ),
                             Text("Activer les Notifications"),
@@ -620,9 +646,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Padding(
                         padding: const EdgeInsets.all(8),
                         child: Row(
+                          spacing: 8,
                           children: [
+                            Icon(
+                              FontAwesomeIcons.userSecret,
+                              color: colorScheme.primary,
+                            ),
                             const Text(
-                              'Profil public (visible dans utilisateurs)',
+                              'Profil public',
                             ),
                             const Spacer(),
                             CupertinoSwitch(
