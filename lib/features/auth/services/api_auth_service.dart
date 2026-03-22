@@ -1,0 +1,129 @@
+import 'package:dio/dio.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:ivox/core/services/api_service.dart';
+
+class ApiAuthService {
+  static final ApiAuthService _instance = ApiAuthService._internal();
+  ApiAuthService._internal();
+  factory ApiAuthService() => _instance;
+
+  final ApiService _apiService = ApiService();
+
+  String _extractToken(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final token = data['token'];
+      if (token is String && token.isNotEmpty) {
+        return token;
+      }
+    }
+    throw Exception("Token manquant dans la reponse serveur");
+  }
+
+  Exception _mapDioError(DioException error) {
+    final statusCode = error.response?.statusCode;
+    final responseData = error.response?.data;
+
+    if (responseData is Map<String, dynamic>) {
+      final message = responseData['message'];
+      if (message is String && message.isNotEmpty) {
+        return Exception(message);
+      }
+    }
+
+    if (statusCode != null) {
+      return Exception("Erreur reseau ($statusCode)");
+    }
+
+    return Exception("Impossible de contacter le serveur");
+  }
+
+  //Register
+  Future<void> register({
+    required String username,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await _apiService.dio.post(
+        "/auth/register",
+        data: {"username": username, "email": email, "password": password},
+      );
+      final token = _extractToken(response.data);
+      //Sauvegarder le token
+      await _apiService.saveToken(token);
+    } on DioException catch (error) {
+      throw _mapDioError(error);
+    }
+  }
+
+  //Login
+  Future<void> login({
+    required String usernameOrEmail,
+    required String password,
+  }) async {
+    try {
+      final response = await _apiService.dio.post(
+        "/auth/login",
+        data: {"usernameOrEmail": usernameOrEmail, "password": password},
+      );
+      final token = _extractToken(response.data);
+      //Sauvegarder le token
+      await _apiService.saveToken(token);
+    } on DioException catch (error) {
+      throw _mapDioError(error);
+    }
+  }
+
+  //Google Auth
+  Future<void> signInWithGoogle() async {
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        throw Exception('Connexion Google annulee');
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('idToken Google manquant');
+      }
+
+      final response = await _apiService.dio.post(
+        '/auth/google/mobile',
+        data: {'idToken': idToken},
+      );
+
+      final token = _extractToken(response.data);
+
+      if (token.isEmpty) {
+        throw Exception('Token backend manquant');
+      }
+
+      await _apiService.saveToken(token);
+    } catch (error) {
+      if (error is DioException) {
+        throw _mapDioError(error);
+      }
+      throw Exception('Connexion Google echouee');
+    }
+  }
+
+  //logout
+  Future<void> logout() async {
+    try {
+      await _apiService.dio.post("/auth/logout");
+    } on DioException {
+      // On nettoie le token local meme si l'appel API echoue.
+    } finally {
+      await _apiService.logout();
+    }
+  }
+
+  //Auth gate => vérifier si l'user est connecté ou pas
+  Future<bool> isAuthentificated() async {
+    await _apiService.init();
+    final token = await _apiService.getToken();
+    return token != null && token.isNotEmpty;
+  }
+}

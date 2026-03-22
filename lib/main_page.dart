@@ -3,7 +3,6 @@ import 'package:ivox/features/chat/presentation/list_user_page.dart';
 import 'package:ivox/features/leaderboard/leaderboard_page.dart';
 import 'package:ivox/features/lessons/presentation/lessons_page.dart';
 import 'package:ivox/features/profile/presentation/profile_page.dart';
-import 'package:ivox/shared/utils/responsive.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -52,47 +51,6 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (Responsive.isMobileOrTablet(context)) {
-      return _buildMobileLayout();
-    } else {
-      return _buildDesktopLayout(context);
-    }
-  }
-
-  Widget _buildMobileLayout() {
     return _buildPage();
-  }
-
-  Widget _buildDesktopLayout(BuildContext context) {
-    final navItems = [
-      ('Leçons', Icons.book),
-      ('Classement', Icons.leaderboard),
-      ('Chat', Icons.message),
-      ('Profil', Icons.person),
-    ];
-
-    return Scaffold(
-      body: Row(
-        children: [
-          // Sidebar
-          NavigationRail(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: _handleTabSelected,
-            extended: MediaQuery.of(context).size.width > 1200,
-            minExtendedWidth: 250,
-            destinations: navItems
-                .map(
-                  (item) => NavigationRailDestination(
-                    icon: Icon(item.$2),
-                    label: Text(item.$1),
-                  ),
-                )
-                .toList(),
-          ),
-          // Content
-          Expanded(child: _buildPage()),
-        ],
-      ),
-    );
   }
 }

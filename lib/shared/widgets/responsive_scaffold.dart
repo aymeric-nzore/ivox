@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ivox/shared/utils/responsive.dart';
 
 class ResponsiveScaffold extends StatelessWidget {
   final String title;
@@ -21,23 +20,15 @@ class ResponsiveScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = Responsive.isMobileOrTablet(context);
-    final maxWidth = Responsive.getMaxWidth(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
         centerTitle: true,
         actions: actions,
       ),
-      body: Center(
-        child: SizedBox(
-          width: isMobile ? maxWidth : maxWidth,
-          child: Padding(
-            padding: Responsive.getPadding(context),
-            child: child,
-          ),
-        ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: child,
       ),
       floatingActionButton: floatingActionButton,
     );

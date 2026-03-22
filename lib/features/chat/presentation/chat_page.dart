@@ -1,13 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/chat/services/chat_services.dart';
-import 'package:ivox/shared/utils/responsive.dart';
 
 class ChatPage extends StatefulWidget {
   final String receiverEmail;
   final String receiverID;
   final String? receiverPhotoUrl;
+
   const ChatPage({
     super.key,
     required this.receiverEmail,
@@ -20,36 +18,68 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final _chatService = ChatServices();
-  final _authService = AuthService();
+  final ChatServices _chatService = ChatServices();
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
 
-  void sendMessage() async {
-    if (_messageController.text.isNotEmpty) {
-      await _chatService.sendMessage(
-        widget.receiverID,
-        _messageController.text,
-      );
-      _messageController.clear();
-      scrollToBottom();
-    }
-  }
-
-  void scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
+  late final Stream<List<ChatMessage>> _messageStream;
+  String? _currentUserId;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
+    _messageStream = _chatService.getMessages(widget.receiverID);
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    try {
+      await _chatService.loadMessages(widget.receiverID);
+      if (mounted) {
+        setState(() {
+          _currentUserId = _chatService.currentUserId;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    }
+  }
+
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
+
+    try {
+      await _chatService.sendMessage(widget.receiverID, text);
+      _messageController.clear();
+      if (mounted) {
+        setState(() {
+          _error = null;
+        });
+      }
+      _scrollToBottom();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    }
+  }
+
+  void _scrollToBottom() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -62,9 +92,6 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = Responsive.isMobileOrTablet(context);
-    final maxWidth = Responsive.getMaxWidth(context);
-
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -73,13 +100,11 @@ class _ChatPageState extends State<ChatPage> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundImage:
-                  widget.receiverPhotoUrl != null &&
+              backgroundImage: widget.receiverPhotoUrl != null &&
                       widget.receiverPhotoUrl!.isNotEmpty
                   ? NetworkImage(widget.receiverPhotoUrl!)
                   : null,
-              child:
-                  widget.receiverPhotoUrl == null ||
+              child: widget.receiverPhotoUrl == null ||
                       widget.receiverPhotoUrl!.isEmpty
                   ? const Icon(Icons.person, size: 18)
                   : null,
@@ -89,94 +114,85 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ),
       ),
-      body: Center(
-        child: SizedBox(
-          width: isMobile ? maxWidth : 800,
-          child: Column(
-            children: [
-              Expanded(child: _buildMessageList()),
-              _buildUserInput(),
-            ],
-          ),
-        ),
+      body: Column(
+        children: [
+          Expanded(child: _buildMessages()),
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          _buildInput(),
+        ],
       ),
     );
   }
 
-  Widget _buildMessageList() {
-    final String senderID = _authService.getUser()!.uid;
-    return StreamBuilder(
-      stream: _chatService.getMessages(senderID, widget.receiverID),
+  Widget _buildMessages() {
+    return StreamBuilder<List<ChatMessage>>(
+      stream: _messageStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Center(child: Text("Erreur de chargement"));
+          return const Center(child: Text('Erreur de chargement'));
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // Scroll to bottom after frame is built
-        WidgetsBinding.instance.addPostFrameCallback((_) => scrollToBottom());
+        final messages = snapshot.data ?? <ChatMessage>[];
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
         return ListView.builder(
           controller: _scrollController,
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (context, index) {
-            return _buildMessageItem(snapshot.data!.docs[index]);
-          },
+          itemCount: messages.length,
+          itemBuilder: (context, index) => _buildMessageItem(messages[index]),
         );
       },
     );
   }
 
-  Widget _buildMessageItem(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    bool isCurrentUser = data["senderID"] == _authService.getUser()!.uid;
+  Widget _buildMessageItem(ChatMessage message) {
+    final isCurrentUser = message.sender == _currentUserId;
+    final time =
+        '${message.createdAt.hour.toString().padLeft(2, '0')}:${message.createdAt.minute.toString().padLeft(2, '0')}';
 
-    // Formater l'heure du message
-    final timestamp = data['timestamp'] as Timestamp?;
-    String timeString = '';
-    if (timestamp != null) {
-      final dateTime = timestamp.toDate();
-      timeString =
-          '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-    }
-
-    return Container(
+    return Align(
       alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        padding: EdgeInsets.all(16),
-        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           color: isCurrentUser ? Colors.amber : Colors.grey[400],
           borderRadius: isCurrentUser
-              ? BorderRadius.only(
+              ? const BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
                   bottomLeft: Radius.circular(16),
                 )
-              : BorderRadius.only(
+              : const BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
                   bottomRight: Radius.circular(16),
                 ),
         ),
         child: Column(
-          crossAxisAlignment: isCurrentUser
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
+          crossAxisAlignment:
+              isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             Text(
-              data['message'],
+              message.message,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
             Text(
-              timeString,
+              time,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color:  Colors.grey[600],
+                color: Colors.grey[600],
               ),
             ),
           ],
@@ -185,21 +201,21 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Widget _buildUserInput() {
+  Widget _buildInput() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15.0),
+      padding: const EdgeInsets.only(bottom: 15),
       child: Row(
         children: [
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: TextField(
                 controller: _messageController,
                 focusNode: _focusNode,
                 textInputAction: TextInputAction.send,
-                onSubmitted: (_) => sendMessage(),
+                onSubmitted: (_) => _sendMessage(),
                 decoration: const InputDecoration(
-                  hintText: "Envoyez un message...",
+                  hintText: 'Envoyez un message...',
                   border: OutlineInputBorder(),
                   filled: true,
                 ),
@@ -213,7 +229,7 @@ class _ChatPageState extends State<ChatPage> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: IconButton(
-              onPressed: sendMessage,
+              onPressed: _sendMessage,
               icon: const Icon(Icons.send),
             ),
           ),

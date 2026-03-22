@@ -1,117 +1,223 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:async';
-import 'package:ivox/features/chat/models/message_model.dart';
+
+import 'package:dio/dio.dart';
+import 'package:ivox/core/services/api_service.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
+
+class ChatUser {
+  final String id;
+  final String username;
+  final String email;
+  final String status;
+  final String? photoUrl;
+
+  ChatUser({
+    required this.id,
+    required this.username,
+    required this.email,
+    required this.status,
+    this.photoUrl,
+  });
+
+  factory ChatUser.fromJson(Map<String, dynamic> json) {
+    return ChatUser(
+      id: (json['id'] ?? '').toString(),
+      username: (json['username'] ?? '').toString(),
+      email: (json['email'] ?? '').toString(),
+      status: (json['status'] ?? 'offline').toString(),
+      photoUrl: json['photoUrl']?.toString(),
+    );
+  }
+}
+
+class ChatMessage {
+  final String messageId;
+  final String sender;
+  final String receiver;
+  final String message;
+  final String status;
+  final DateTime createdAt;
+
+  ChatMessage({
+    required this.messageId,
+    required this.sender,
+    required this.receiver,
+    required this.message,
+    required this.status,
+    required this.createdAt,
+  });
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      messageId: (json['messageId'] ?? '').toString(),
+      sender: (json['sender'] ?? '').toString(),
+      receiver: (json['receiver'] ?? '').toString(),
+      message: (json['message'] ?? '').toString(),
+      status: (json['status'] ?? 'sent').toString(),
+      createdAt: DateTime.tryParse((json['createdAt'] ?? '').toString()) ??
+          DateTime.now(),
+    );
+  }
+}
 
 class ChatServices {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final ChatServices _instance = ChatServices._internal();
+  ChatServices._internal();
+  factory ChatServices() => _instance;
 
-  //Recup les users
-  Stream<List<Map<String, dynamic>>> getUserStream() {
-    return _firestore.collection("users").snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) {
-            final user = doc.data();
-            return user;
-          })
-          .where((user) {
-            return user['uid'] != _auth.currentUser?.uid;
-          })
-          .toList();
-    });
-  }
+  final ApiService _apiService = ApiService();
 
-  //envoyer un message
-  Future<void> sendMessage(String receiverID, String message) async {
-    final currentUserID = _auth.currentUser!.uid;
-    final currentUserEmail = _auth.currentUser!.email!;
-    final currentUserDoc =
-      await _firestore.collection('users').doc(currentUserID).get();
-    final currentUsername =
-      (currentUserDoc.data()?['username'] as String?)?.trim();
-    final senderName = (currentUsername != null && currentUsername.isNotEmpty)
-      ? currentUsername
-      : currentUserEmail;
+  final StreamController<List<ChatMessage>> _messagesController =
+      StreamController<List<ChatMessage>>.broadcast();
 
-    MessageModel newMessage = MessageModel(
-      senderID: currentUserID,
-      senderEmail: currentUserEmail,
-      senderUsername: senderName,
-      receiverID: receiverID,
-      message: message,
-      timestamp: Timestamp.now(),
+  io.Socket? _socket;
+  String? _currentUserId;
+  final Map<String, List<ChatMessage>> _messages = {};
+
+  String? get currentUserId => _currentUserId;
+
+  Future<void> _initSocket() async {
+    if (_socket?.connected == true) return;
+
+    await _apiService.init();
+    final token = await _apiService.getToken();
+    if (token == null || token.isEmpty) {
+      throw Exception('Token manquant');
+    }
+
+    final me = await _apiService.dio.get('/auth/me');
+    final meData = _toMap(me.data);
+    _currentUserId = (meData['id'] ?? '').toString();
+
+    if (_currentUserId == null || _currentUserId!.isEmpty) {
+      throw Exception('Utilisateur introuvable');
+    }
+
+    final baseUrl = _apiService.dio.options.baseUrl.replaceAll('/api', '');
+
+    _socket = io.io(
+      baseUrl,
+      io.OptionBuilder()
+          .setTransports(['websocket'])
+          .disableAutoConnect()
+          .setExtraHeaders({'Authorization': 'Bearer $token'})
+          .build(),
     );
 
-    //Créer la salle
-    List<String> ids = [currentUserID, receiverID];
-    ids.sort();
-    String chatRoomID = ids.join('_');
+    _socket!.onConnect((_) {
+      _socket!.emit('user_join', {'userId': _currentUserId});
+    });
 
-    //envoyez à firestore
-    await _firestore
-        .collection("chat_rooms")
-        .doc(chatRoomID)
-        .collection("message")
-        .add(newMessage.toMap());
+    _socket!.on('message_new', (data) => _pushMessage(ChatMessage.fromJson(_toMap(data))));
+    _socket!.on('message_sent', (data) => _pushMessage(ChatMessage.fromJson(_toMap(data))));
+    _socket!.on('message_read', (data) {
+      final payload = _toMap(data);
+      final targetId = (payload['messageId'] ?? '').toString();
+      if (targetId.isEmpty) return;
 
-      
+      for (final key in _messages.keys) {
+        final updated = _messages[key]!.map((m) {
+          if (m.messageId != targetId) return m;
+          return ChatMessage(
+            messageId: m.messageId,
+            sender: m.sender,
+            receiver: m.receiver,
+            message: m.message,
+            status: 'read',
+            createdAt: m.createdAt,
+          );
+        }).toList();
+        _messages[key] = updated;
+      }
+    });
 
-    // Envoyer la notification via FCM server sans bloquer l'envoi du message
-    unawaited(_sendNotificationToServer(receiverID, senderName, message));
+    _socket!.connect();
   }
 
-  //Envoyer une notification via le serveur FCM
-  Future<void> _sendNotificationToServer(
-    String receiverID,
-    String senderName,
-    String message,
-  ) async {
+  Future<List<ChatUser>> getUsers() async {
+    await _initSocket();
+    final response = await _apiService.dio.get('/messages/users');
+    final data = response.data;
+
+    if (data is! List) return [];
+
+    return data
+        .map((e) => ChatUser.fromJson(_toMap(e)))
+        .where((u) => u.id != _currentUserId)
+        .toList();
+  }
+
+  Future<List<ChatMessage>> loadMessages(String withUserId) async {
+    await _initSocket();
+    final response = await _apiService.dio.get('/messages/$withUserId');
+    final data = response.data;
+
+    if (data is! List) {
+      _messages[withUserId] = [];
+      _messagesController.add([]);
+      return [];
+    }
+
+    final list = data.map((e) => ChatMessage.fromJson(_toMap(e))).toList();
+    _messages[withUserId] = list;
+    _messagesController.add(list);
+
+    _socket?.emit('chat_join', {'withUserId': withUserId});
+    return list;
+  }
+
+  Stream<List<ChatMessage>> getMessages(String withUserId) async* {
+    await loadMessages(withUserId);
+    yield _messages[withUserId] ?? [];
+    yield* _messagesController.stream.map((_) => _messages[withUserId] ?? []);
+  }
+
+  Future<void> sendMessage(String receiverId, String message) async {
+    await _initSocket();
+    final text = message.trim();
+    if (text.isEmpty) return;
+
     try {
-      // Récupérer le token FCM du destinataire depuis Firestore
-      final receiverDoc =
-          await _firestore.collection('users').doc(receiverID).get();
-      final fcmToken = receiverDoc.data()?['fcmToken'] as String?;
-
-      if (fcmToken == null) {
-        print('Token FCM non disponible pour le destinataire');
-        return;
+      final response = await _apiService.dio.post(
+        '/messages',
+        data: {'receiver': receiverId, 'message': text},
+      );
+      final created = ChatMessage.fromJson(_toMap(response.data));
+      _pushMessage(created);
+    } on DioException catch (error) {
+      final raw = error.response?.data;
+      if (raw is Map && raw['message'] != null) {
+        throw Exception(raw['message'].toString());
       }
-
-      final response = await http.post(
-        Uri.parse('https://fcm-server-b961.onrender.com/send'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'token': fcmToken,
-          'title': 'Nouveau message de $senderName',
-          'body': message,
-        }),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        print('Notification envoyée avec succès');
-      } else {
-        print('Erreur FCM: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Erreur lors de l\'envoi de la notification: $e');
+      throw Exception('Envoi impossible');
     }
   }
 
-  //get les messages
-  Stream<QuerySnapshot> getMessages(String userID, String otherID) {
-    //Créer la salle
-    List<String> ids = [userID, otherID];
-    ids.sort();
-    String chatRoomID = ids.join('_');
+  Future<void> markAsRead(String messageId) async {
+    await _initSocket();
+    await _apiService.dio.patch('/messages/$messageId/read');
+  }
 
-    return _firestore
-        .collection("chat_rooms")
-        .doc(chatRoomID)
-        .collection("message")
-        .orderBy("timestamp", descending: false)
-        .snapshots();
+  void _pushMessage(ChatMessage message) {
+    final peerId = message.sender == _currentUserId ? message.receiver : message.sender;
+    final list = _messages.putIfAbsent(peerId, () => []);
+
+    final existing = list.indexWhere((m) => m.messageId == message.messageId);
+    if (existing >= 0) {
+      list[existing] = message;
+    } else {
+      list.add(message);
+      list.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    }
+
+    _messagesController.add(List<ChatMessage>.from(list));
+  }
+
+  Map<String, dynamic> _toMap(dynamic input) {
+    if (input is Map<String, dynamic>) return input;
+    if (input is Map) {
+      return input.map((k, v) => MapEntry(k.toString(), v));
+    }
+    return {};
   }
 }

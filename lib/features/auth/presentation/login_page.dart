@@ -1,8 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ivox/features/auth/presentation/register_page.dart';
-import 'package:ivox/features/auth/services/auth_service.dart';
-import 'package:ivox/features/notifications/notification_service.dart';
+import 'package:ivox/features/auth/services/api_auth_service.dart';
 import 'package:ivox/features/onBoarding/on_boarding_page.dart';
 import 'package:ivox/main_page.dart';
 import 'package:ivox/shared/utils/my_button.dart';
@@ -22,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool isObscure = true;
-  final _authService = AuthService();
+  final _apiAuthService = ApiAuthService();
   String? errorMessage;
   bool isLoading = false;
 
@@ -48,45 +46,19 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await _authService.signInWithEmailAndPassword(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
+      await _apiAuthService.login(
+        usernameOrEmail: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
-      await NotificationService().saveUserFcmToken();
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MainPage()),
+          MaterialPageRoute(builder: (context) => const MainPage()),
         );
       }
-    } on FirebaseAuthException catch (e) {
-      String message;
-      switch (e.code) {
-        case 'user-not-found':
-          message = 'Aucun utilisateur trouvé avec cet e-mail';
-          break;
-        case 'wrong-password':
-          message = 'Mot de passe incorrect';
-          break;
-        case 'invalid-email':
-          message = 'L\'adresse e-mail est invalide';
-          break;
-        case 'user-disabled':
-          message = 'Ce compte a été désactivé';
-          break;
-        case 'invalid-credential':
-          message = 'Identifiants invalides';
-          break;
-        default:
-          message = 'Erreur: ${e.message}';
-      }
-      setState(() {
-        errorMessage = message;
-        isLoading = false;
-      });
     } catch (e) {
       setState(() {
-        errorMessage = 'Une erreur est survenue: $e';
+        errorMessage = e.toString().replaceFirst('Exception: ', '');
         isLoading = false;
       });
     }
@@ -99,40 +71,16 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await _authService.signInWithGoogle();
-      await NotificationService().saveUserFcmToken();
+      await _apiAuthService.signInWithGoogle();
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MainPage()),
+          MaterialPageRoute(builder: (context) => const MainPage()),
         );
       }
     } catch (e) {
       setState(() {
         errorMessage = 'Erreur connexion Google: $e';
-        isLoading = false;
-      });
-    }
-  }
-
-  void signInWithFacebook() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
-
-    try {
-      await _authService.signInWithFacebook();
-      await NotificationService().saveUserFcmToken();
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MainPage()),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Erreur connexion Facebook: $e';
         isLoading = false;
       });
     }
@@ -176,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     MyTextfield(
-                      text: "E-mail",
+                      text: "E-mail ou username",
                       controller: _emailController,
                       icon: Icon(Icons.email),
                       isObscure: false,
@@ -236,7 +184,7 @@ class _LoginPageState extends State<LoginPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Text(
-                            "Or continue with",
+                            "Ou continuer avec",
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
@@ -245,20 +193,24 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(child: MyIconTile(name: "google.png", onTap: isLoading ? () {} : signInWithGoogle, title: 'Google',)),
-                        SizedBox(width: 25),
-                        Expanded(child: MyIconTile(name: "facebook.png", onTap: isLoading ? () {} : signInWithFacebook, title: 'facebook',)),
+                        Expanded(
+                          child: MyIconTile(
+                            name: "google.png",
+                            onTap: isLoading ? () {} : signInWithGoogle,
+                            title: 'Google',
+                          ),
+                        ),
                       ],
                     ),
                     SizedBox(height: 20),
                     GestureDetector(
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => RegisterPage()),
+                        MaterialPageRoute(builder: (context) => const RegisterPage()),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,

@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ivox/core/theme/theme_provider.dart';
 import 'package:ivox/features/auth/presentation/login_page.dart';
+import 'package:ivox/features/auth/services/api_auth_service.dart';
 import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/dictionnaire/presentation/dictionnaire_page.dart';
 import 'package:ivox/features/notifications/notification_service.dart';
@@ -28,6 +29,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final _apiAuthService = ApiAuthService();
   final _authService = AuthService();
   final _notificationService = NotificationService();
   final _usernameController = TextEditingController();
@@ -40,7 +42,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _handleLogout() async {
     try {
-      await _authService.logout();
+      await _apiAuthService.logout();
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -237,7 +239,7 @@ class _ProfilePageState extends State<ProfilePage> {
       final requestStatus = status.isGranted
           ? status
           : await Permission.notification.request();
-      
+
       // iOS & Android: demander avec Firebase
       await _notificationService.firebaseMessaging.requestPermission(
         alert: true,
@@ -412,7 +414,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(12.0),
+                        padding: const EdgeInsets.all(8.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -517,7 +519,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(12.0),
+                        padding: const EdgeInsets.all(8.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -581,17 +583,16 @@ class _ProfilePageState extends State<ProfilePage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                         side: BorderSide(
-                          color: colorScheme.outline.withOpacity(0.2)
-                        )
+                          color: colorScheme.outline.withOpacity(0.2),
+                        ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(8),
                         child: Row(
                           children: [
                             Text("Activer les Notifications"),
                             const Spacer(),
                             CupertinoSwitch(
-                              
                               value: _notificationsEnabled,
                               onChanged: _isTogglingNotifications
                                   ? null
@@ -601,7 +602,44 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
-                    
+
+                    SizedBox(height: 8),
+                    Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: colorScheme.outline.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DictionaryScreen(),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                spacing: 8,
+                                children: [
+                                  Icon(
+                                    FontAwesomeIcons.paperclip,
+                                    color: colorScheme.primary,
+                                  ),
+                                  Text("Dictionnaire"),
+                                ],
+                              ),
+                              Icon(Icons.arrow_right_sharp),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                     SizedBox(height: 8),
                     Card(
                       elevation: 0,
@@ -627,10 +665,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                 spacing: 8,
                                 children: [
                                   Icon(
-                                    FontAwesomeIcons.paperclip,
+                                    FontAwesomeIcons.shop,
                                     color: colorScheme.primary,
                                   ),
-                                  Text("Dictionnaire"),
+                                  Text("Boutique"),
                                 ],
                               ),
                               Icon(Icons.arrow_right_sharp),

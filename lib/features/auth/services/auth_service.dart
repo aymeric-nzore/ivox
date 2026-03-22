@@ -1,164 +1,105 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:async';
+import 'dart:typed_data';
+
+import 'package:ivox/core/services/api_service.dart';
 import 'package:ivox/core/services/supabase_service.dart';
 
+class AppUser {
+  final String uid;
+  final String? email;
+  final String? displayName;
+
+  AppUser({
+    required this.uid,
+    this.email,
+    this.displayName,
+  });
+}
+
+class UserDocSnapshot {
+  final Map<String, dynamic> _data;
+
+  UserDocSnapshot(this._data);
+
+  Map<String, dynamic> data() => _data;
+}
+
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final AuthService _instance = AuthService._internal();
+  AuthService._internal();
+  factory AuthService() => _instance;
+
+  final ApiService _apiService = ApiService();
   final SupabaseService _supabaseService = SupabaseService();
+  final StreamController<UserDocSnapshot> _userController =
+      StreamController<UserDocSnapshot>.broadcast();
 
-  User? getUser() {
-    return _auth.currentUser;
+  AppUser? _currentUser;
+  Map<String, dynamic> _currentProfile = {
+    'username': 'Utilisateur',
+    'email': '',
+    'photoUrl': null,
+    'level': 1,
+    'xp': 0,
+  };
+
+  AppUser? getUser() => _currentUser;
+
+  Stream<UserDocSnapshot> userDocStream() {
+    _bootstrap();
+    return _userController.stream;
   }
 
-  Stream<DocumentSnapshot<Map<String, dynamic>>> userDocStream() {
-    final user = getUser();
-    if (user == null) {
-      return const Stream.empty();
+  Future<void> _bootstrap() async {
+    await _apiService.init();
+    final token = await _apiService.getToken();
+    if (token == null || token.isEmpty) {
+      _currentUser = null;
+      _pushProfile();
+      return;
     }
-    return _firestore.collection("users").doc(user.uid).snapshots();
-  }
 
-  //Email
-  //Inscription
-  Future<UserCredential> signUpWithEmailAndPassword(
-    String email,
-    String password,
-    String username,
-  ) async {
-    UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    //Envoyez à firestore
-    await _firestore.collection("users").doc(userCredential.user!.uid).set({
-      'uid': userCredential.user!.uid,
-      'username': username,
-      'email': email,
-      'timestamp': Timestamp.now(),
-      'level': 1,
-      'xp': 0,
-      'totalXp': 0,
-    });
-    return userCredential;
-  }
-
-  //CONNEXION
-  Future<UserCredential> signInWithEmailAndPassword(
-    String email,
-    String password,
-  ) async {
-    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    return userCredential;
-  }
-
-  //Google
-  Future<UserCredential> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final response = await _apiService.dio.get('/auth/me');
+      final data = _toMap(response.data);
+      final id = (data['id'] ?? '').toString();
+      final username = (data['username'] ?? 'Utilisateur').toString();
+      final email = (data['email'] ?? '').toString();
 
-      if (googleUser == null) {
-        throw Exception("Google Sign-In cancelled");
+      if (id.isEmpty) {
+        return;
       }
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      UserCredential userCredential = await _auth.signInWithCredential(
-        credential,
-      );
-
-      final userDoc = await _firestore
-          .collection("users")
-          .doc(userCredential.user!.uid)
-          .get();
-
-      if (!userDoc.exists) {
-        await _firestore.collection("users").doc(userCredential.user!.uid).set({
-          'uid': userCredential.user!.uid,
-          'username': googleUser.displayName ?? 'User',
-          'email': googleUser.email,
-          'photoUrl': googleUser.photoUrl,
-          'timestamp': Timestamp.now(),
-          'level': 1,
-          'xp': 0,
-          'totalXp': 0,
-        });
-      }
-
-      return userCredential;
-    } catch (e) {
-      rethrow;
+      _currentUser = AppUser(uid: id, email: email, displayName: username);
+      _currentProfile = {
+        ..._currentProfile,
+        'username': username,
+        'email': email,
+      };
+      _pushProfile();
+    } catch (_) {
+      // Keep previous cached user/profile when network is unavailable.
     }
-  }
-
-  //Facebook
-  Future<UserCredential> signInWithFacebook() async {
-    // Déclencher le flux d'authentification
-    final LoginResult loginResult = await FacebookAuth.instance.login();
-
-    if (loginResult.status != LoginStatus.success) {
-      throw Exception("Connexion Facebook échouée");
-    }
-
-    // Obtenir le token d'accès
-    final OAuthCredential facebookAuthCredential =
-        FacebookAuthProvider.credential(loginResult.accessToken!.tokenString);
-
-    // Se connecter avec Firebase
-    UserCredential userCredential = await _auth.signInWithCredential(
-      facebookAuthCredential,
-    );
-
-    // Obtenir les infos du profil Facebook
-    final userData = await FacebookAuth.instance.getUserData();
-
-    // Enregistrer/mettre à jour l'utilisateur dans Firestore
-    final userDoc = await _firestore
-        .collection("users")
-        .doc(userCredential.user!.uid)
-        .get();
-
-    if (!userDoc.exists) {
-      await _firestore.collection("users").doc(userCredential.user!.uid).set({
-        'uid': userCredential.user!.uid,
-        'username': userData['name'] ?? 'User',
-        'email': userData['email'] ?? userCredential.user!.email,
-        'photoUrl': userData['picture']?['data']?['url'],
-        'timestamp': Timestamp.now(),
-      });
-    }
-
-    return userCredential;
   }
 
   Future<void> updateUsername(String username) async {
-    final user = getUser();
-    if (user == null) throw Exception("Utilisateur non connecté");
-    await _firestore.collection("users").doc(user.uid).update({
-      'username': username,
-      'updatedAt': Timestamp.now(),
-    });
+    final normalized = username.trim();
+    if (normalized.isEmpty) {
+      throw Exception("Nom d'utilisateur invalide");
+    }
+
+    _currentProfile = {..._currentProfile, 'username': normalized};
+    _currentUser = AppUser(
+      uid: _currentUser?.uid ?? '',
+      email: _currentUser?.email,
+      displayName: normalized,
+    );
+    _pushProfile();
   }
 
   Future<void> updatePhotoUrl(String photoUrl) async {
-    final user = getUser();
-    if (user == null) throw Exception("Utilisateur non connecté");
-    await _firestore.collection("users").doc(user.uid).update({
-      'photoUrl': photoUrl,
-      'updatedAt': Timestamp.now(),
-    });
+    _currentProfile = {..._currentProfile, 'photoUrl': photoUrl};
+    _pushProfile();
   }
 
   Future<String> uploadProfileImage({
@@ -166,17 +107,42 @@ class AuthService {
     required String fileName,
   }) async {
     final user = getUser();
-    if (user == null) throw Exception("Utilisateur non connecté");
+    if (user == null || user.uid.isEmpty) {
+      throw Exception('Utilisateur non connecté');
+    }
 
-    return await _supabaseService.uploadProfileImage(
+    return _supabaseService.uploadProfileImage(
       bytes: bytes,
       userId: user.uid,
       fileName: fileName,
     );
   }
 
-  //DECONNEXION
   Future<void> logout() async {
-    await _auth.signOut();
+    _currentUser = null;
+    _currentProfile = {
+      'username': 'Utilisateur',
+      'email': '',
+      'photoUrl': null,
+      'level': 1,
+      'xp': 0,
+    };
+    _pushProfile();
+  }
+
+  void _pushProfile() {
+    if (!_userController.isClosed) {
+      _userController.add(UserDocSnapshot(Map<String, dynamic>.from(_currentProfile)));
+    }
+  }
+
+  Map<String, dynamic> _toMap(dynamic input) {
+    if (input is Map<String, dynamic>) {
+      return input;
+    }
+    if (input is Map) {
+      return input.map((key, value) => MapEntry(key.toString(), value));
+    }
+    return <String, dynamic>{};
   }
 }

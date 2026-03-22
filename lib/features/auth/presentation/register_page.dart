@@ -1,8 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ivox/features/auth/presentation/login_page.dart';
-import 'package:ivox/features/auth/services/auth_service.dart';
-import 'package:ivox/features/notifications/notification_service.dart';
+import 'package:ivox/features/auth/services/api_auth_service.dart';
 import 'package:ivox/main_page.dart';
 import 'package:ivox/shared/utils/my_button.dart';
 import 'package:ivox/shared/utils/my_icon_tile.dart';
@@ -22,7 +20,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool isObscure = true;
-  final _authService = AuthService();
+  final _apiAuthService = ApiAuthService();
   String? errorMessage;
   bool isLoading = false;
 
@@ -51,40 +49,20 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     try {
-      await _authService.signUpWithEmailAndPassword(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-        _usernameController.text.trim(),
+      await _apiAuthService.register(
+        username: _usernameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
-      await NotificationService().saveUserFcmToken();
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MainPage()),
+          MaterialPageRoute(builder: (context) => const MainPage()),
         );
       }
-    } on FirebaseAuthException catch (e) {
-      String message;
-      switch (e.code) {
-        case 'weak-password':
-          message = 'Le mot de passe est trop faible';
-          break;
-        case 'email-already-in-use':
-          message = 'Cet e-mail est déjà utilisé';
-          break;
-        case 'invalid-email':
-          message = 'L\'adresse e-mail est invalide';
-          break;
-        default:
-          message = 'Erreur: ${e.message}';
-      }
-      setState(() {
-        errorMessage = message;
-        isLoading = false;
-      });
     } catch (e) {
       setState(() {
-        errorMessage = 'Une erreur est survenue: $e';
+        errorMessage = e.toString().replaceFirst('Exception: ', '');
         isLoading = false;
       });
     }
@@ -97,40 +75,16 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     try {
-      await _authService.signInWithGoogle();
-      await NotificationService().saveUserFcmToken();
+      await _apiAuthService.signInWithGoogle();
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MainPage()),
+          MaterialPageRoute(builder: (context) => const MainPage()),
         );
       }
     } catch (e) {
       setState(() {
         errorMessage = 'Erreur connexion Google: $e';
-        isLoading = false;
-      });
-    }
-  }
-
-  void signInWithFacebook() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
-
-    try {
-      await _authService.signInWithFacebook();
-      await NotificationService().saveUserFcmToken();
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MainPage()),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Erreur connexion Facebook: $e';
         isLoading = false;
       });
     }
@@ -228,7 +182,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Text(
-                            "Or continue with",
+                            "Ou continuer avec",
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
@@ -237,7 +191,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -248,21 +202,13 @@ class _RegisterPageState extends State<RegisterPage> {
                             title: 'Google',
                           ),
                         ),
-                        SizedBox(width: 25),
-                        Expanded(
-                          child: MyIconTile(
-                            name: "facebook.png",
-                            onTap: isLoading ? () {} : signInWithFacebook,
-                            title: 'facebook',
-                          ),
-                        ),
                       ],
                     ),
                     SizedBox(height: 20),
                     GestureDetector(
                       onTap: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => LoginPage()),
+                        MaterialPageRoute(builder: (context) => const LoginPage()),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
