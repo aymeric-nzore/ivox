@@ -46,7 +46,7 @@ class UserTile extends StatelessWidget {
             ),
             IconButton(
               onPressed: () => showPopover(
-                height: 120,
+                height: 80,
                 width: 220,
                 direction: PopoverDirection.bottom,
                 context: context,
@@ -80,22 +80,6 @@ class UserTile extends StatelessWidget {
                             SizedBox(width: 6),
                             Icon(Icons.block),
                             Text("Bloquez cet utilisateur"),
-                          ],
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      child: Container(
-                        color: const Color.fromARGB(255, 251, 173, 56),
-                        height: 40,
-                        width: double.infinity,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          spacing: 6,
-                          children: [
-                            SizedBox(width: 6),
-                            Icon(Icons.report),
-                            Text("Signalez cet utilisateur"),
                           ],
                         ),
                       ),

@@ -69,10 +69,13 @@ class ChatServices {
 
   final StreamController<List<ChatMessage>> _messagesController =
       StreamController<List<ChatMessage>>.broadcast();
+    final StreamController<Map<String, String>> _presenceController =
+      StreamController<Map<String, String>>.broadcast();
 
   io.Socket? _socket;
   String? _currentUserId;
   final Map<String, List<ChatMessage>> _messages = {};
+  final Map<String, String> _userStatus = {};
 
   String? get currentUserId => _currentUserId;
 
@@ -129,6 +132,19 @@ class ChatServices {
         }).toList();
         _messages[key] = updated;
       }
+
+      _messagesController.add(
+        List<ChatMessage>.from(_messages.values.expand((e) => e)),
+      );
+    });
+
+    _socket!.on('user_presence', (data) {
+      final payload = _toMap(data);
+      final userId = (payload['userId'] ?? '').toString();
+      final status = (payload['status'] ?? 'offline').toString();
+      if (userId.isEmpty) return;
+      _userStatus[userId] = status;
+      _presenceController.add(Map<String, String>.from(_userStatus));
     });
 
     _socket!.connect();
@@ -141,10 +157,16 @@ class ChatServices {
 
     if (data is! List) return [];
 
-    return data
+    final users = data
         .map((e) => ChatUser.fromJson(_toMap(e)))
         .where((u) => u.id != _currentUserId)
         .toList();
+
+    for (final user in users) {
+      _userStatus[user.id] = user.status;
+    }
+
+    return users;
   }
 
   Future<List<ChatMessage>> loadMessages(String withUserId) async {
@@ -196,6 +218,24 @@ class ChatServices {
   Future<void> markAsRead(String messageId) async {
     await _initSocket();
     await _apiService.dio.patch('/messages/$messageId/read');
+  }
+
+  Future<void> reportMessage(String messageId, {String? reason}) async {
+    await _initSocket();
+    await _apiService.dio.post(
+      '/messages/$messageId/report',
+      data: {'reason': reason ?? 'inappropriate'},
+    );
+  }
+
+  String getUserStatus(String userId) {
+    return _userStatus[userId] ?? 'offline';
+  }
+
+  Stream<String> userStatusStream(String userId) async* {
+    await _initSocket();
+    yield getUserStatus(userId);
+    yield* _presenceController.stream.map((state) => state[userId] ?? 'offline');
   }
 
   void _pushMessage(ChatMessage message) {

@@ -9,7 +9,6 @@ import 'package:ivox/features/auth/presentation/login_page.dart';
 import 'package:ivox/features/auth/services/api_auth_service.dart';
 import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/dictionnaire/presentation/dictionnaire_page.dart';
-import 'package:ivox/features/notifications/notification_service.dart';
 import 'package:ivox/shared/widgets/main_bottom_nav_bar.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -31,7 +30,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final _apiAuthService = ApiAuthService();
   final _authService = AuthService();
-  final _notificationService = NotificationService();
   final _usernameController = TextEditingController();
   final _imagePicker = ImagePicker();
   bool _isEditingName = false;
@@ -240,17 +238,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ? status
           : await Permission.notification.request();
 
-      // iOS & Android: demander avec Firebase
-      await _notificationService.firebaseMessaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-
       if (!requestStatus.isGranted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -270,32 +257,11 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     }
 
-    try {
-      if (value) {
-        await _notificationService.saveUserFcmToken();
-      } else {
-        await _notificationService.clearUserFcmToken();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Erreur notifications: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      if (mounted) {
-        setState(() {
-          _notificationsEnabled = previousValue;
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isTogglingNotifications = false;
-        });
-      }
+    if (mounted) {
+      setState(() {
+        _notificationsEnabled = value;
+        _isTogglingNotifications = false;
+      });
     }
   }
 

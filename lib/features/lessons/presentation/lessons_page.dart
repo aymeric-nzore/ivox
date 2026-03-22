@@ -162,7 +162,7 @@ class _LessonsPageState extends State<LessonsPage> {
               }
 
               final data = snapshot.data!.data();
-              final photoUrl = data?["photoUrl"] as String?;
+              final photoUrl = data["photoUrl"] as String?;
 
               return CircleAvatar(
                 backgroundImage: (photoUrl != null && photoUrl.isNotEmpty)

@@ -5,12 +5,14 @@ class ChatPage extends StatefulWidget {
   final String receiverEmail;
   final String receiverID;
   final String? receiverPhotoUrl;
+  final String? receiverStatus;
 
   const ChatPage({
     super.key,
     required this.receiverEmail,
     required this.receiverID,
     this.receiverPhotoUrl,
+    this.receiverStatus,
   });
 
   @override
@@ -24,6 +26,8 @@ class _ChatPageState extends State<ChatPage> {
   final FocusNode _focusNode = FocusNode();
 
   late final Stream<List<ChatMessage>> _messageStream;
+  late final Stream<String> _statusStream;
+  final Set<String> _readRequested = <String>{};
   String? _currentUserId;
   String? _error;
 
@@ -31,6 +35,7 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     _messageStream = _chatService.getMessages(widget.receiverID);
+    _statusStream = _chatService.userStatusStream(widget.receiverID);
     _bootstrap();
   }
 
@@ -110,7 +115,29 @@ class _ChatPageState extends State<ChatPage> {
                   : null,
             ),
             const SizedBox(width: 8),
-            Text(widget.receiverEmail),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(widget.receiverEmail),
+                StreamBuilder<String>(
+                  stream: _statusStream,
+                  builder: (context, snapshot) {
+                    final status =
+                        (snapshot.data ?? widget.receiverStatus ?? 'offline')
+                            .toLowerCase();
+                    final isOnline = status == 'online';
+                    return Text(
+                      isOnline ? 'En ligne' : 'Hors ligne',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isOnline ? Colors.green : Colors.grey,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -143,6 +170,7 @@ class _ChatPageState extends State<ChatPage> {
         }
 
         final messages = snapshot.data ?? <ChatMessage>[];
+        _markIncomingMessagesAsRead(messages);
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
         return ListView.builder(
@@ -161,44 +189,119 @@ class _ChatPageState extends State<ChatPage> {
 
     return Align(
       alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(
-          color: isCurrentUser ? Colors.amber : Colors.grey[400],
-          borderRadius: isCurrentUser
-              ? const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
-                )
-              : const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-        ),
-        child: Column(
-          crossAxisAlignment:
-              isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            Text(
-              message.message,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              time,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[600],
+      child: GestureDetector(
+        onLongPress: () => _showMessageActions(message),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          decoration: BoxDecoration(
+            color: isCurrentUser ? Colors.amber : Colors.grey[400],
+            borderRadius: isCurrentUser
+                ? const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  )
+                : const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
+                  ),
+          ),
+          child: Column(
+            crossAxisAlignment: isCurrentUser
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
+            children: [
+              Text(
+                message.message,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                time,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[600],
+                ),
+              ),
+              if (isCurrentUser)
+                _buildStatusIndicator(message.status),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _showMessageActions(ChatMessage message) async {
+    if (_currentUserId != null && message.sender == _currentUserId) {
+      return;
+    }
+
+    final shouldReport = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: ListTile(
+            leading: const Icon(Icons.report),
+            title: const Text('Signaler ce message'),
+            onTap: () => Navigator.pop(context, true),
+          ),
+        );
+      },
+    );
+
+    if (shouldReport != true) {
+      return;
+    }
+
+    try {
+      await _chatService.reportMessage(message.messageId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Message signale')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur signalement: $e')),
+        );
+      }
+    }
+  }
+
+  Widget _buildStatusIndicator(String status) {
+    final normalized = status.toLowerCase();
+
+    if (normalized == 'read') {
+      return const Icon(Icons.done_all, size: 14, color: Colors.blue);
+    }
+
+    if (normalized == 'delivered') {
+      return const Icon(Icons.done_all, size: 14, color: Colors.grey);
+    }
+
+    return const Icon(Icons.check, size: 14, color: Colors.grey);
+  }
+
+  void _markIncomingMessagesAsRead(List<ChatMessage> messages) {
+    final me = _currentUserId;
+    if (me == null || me.isEmpty) return;
+
+    for (final message in messages) {
+      final shouldMark =
+          message.receiver == me && message.status.toLowerCase() != 'read';
+      if (!shouldMark) continue;
+      if (_readRequested.contains(message.messageId)) continue;
+
+      _readRequested.add(message.messageId);
+      _chatService.markAsRead(message.messageId).catchError((_) {
+        _readRequested.remove(message.messageId);
+      });
+    }
   }
 
   Widget _buildInput() {
