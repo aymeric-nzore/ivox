@@ -12,38 +12,18 @@
           "package_name": "com.example.ivox"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "675698248240-d9uunucpfrfoq0566qmfhhn4ookr5pk1.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.ivox",
-            "certificate_hash": "5913e6d23b86637d6915b8758e3e9587b226f337"
-          }
-        },
-        {
-          "client_id": "675698248240-51c3s742hbn43p87q2kbplcq2kfhrdlv.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDVCkGsiEwptbi7lQzNz3mWJJ7j19mkeT0"
+          "current_key": "AIzaSyDEVwjpGnY2IppfaiwreRxlav8Y_PWs3R0"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "675698248240-51c3s742hbn43p87q2kbplcq2kfhrdlv.apps.googleusercontent.com",
+              "client_id": "675698248240-qljc85d3btntafj07d01i0c29n3l4p67.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "675698248240-rlphagcig0v0eetp1l6qkllfpqofaee5.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.ivox"
-              }
             }
           ]
         }

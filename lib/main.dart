@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ivox/core/services/audio_background_state.dart';
+import 'package:ivox/core/services/fcm_token_service.dart';
+import 'package:ivox/core/services/notification_service.dart';
 import 'package:ivox/core/theme/theme_provider.dart';
 import 'package:ivox/splash_screen.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -16,6 +18,10 @@ void main() async {
     );
     AudioBackgroundState.isInitialized = true;
   } catch (_) {}
+
+  // Initialize notification service to listen for Socket.IO notifications globally
+  await NotificationService().initialize();
+  await FcmTokenService().initialize();
 
   runApp(const MyApp());
 }

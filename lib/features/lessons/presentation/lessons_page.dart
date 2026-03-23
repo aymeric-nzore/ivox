@@ -22,6 +22,7 @@ class LessonsPage extends StatefulWidget {
 
 class _LessonsPageState extends State<LessonsPage> {
   final _authService = AuthService();
+  late final Stream<UserDocSnapshot> _userStream;
   final List<GridCourses> data = [
     GridCourses(
       title: "Tous les cours",
@@ -74,6 +75,13 @@ class _LessonsPageState extends State<LessonsPage> {
       starCompt: 3,
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _userStream = _authService.userDocStream();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -84,7 +92,8 @@ class _LessonsPageState extends State<LessonsPage> {
       appBar: AppBar(
         actions: [
           StreamBuilder(
-            stream: _authService.userDocStream(),
+            stream: _userStream,
+            initialData: _authService.currentUserSnapshot,
             builder: (context, snapshot) {
               final data = snapshot.data?.data();
               final level = data?["level"] as int? ?? 1;
@@ -172,7 +181,8 @@ class _LessonsPageState extends State<LessonsPage> {
         leading: Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: StreamBuilder(
-            stream: _authService.userDocStream(),
+            stream: _userStream,
+            initialData: _authService.currentUserSnapshot,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const CircleAvatar(child: Icon(Icons.person));
@@ -194,7 +204,8 @@ class _LessonsPageState extends State<LessonsPage> {
         ),
 
         title: StreamBuilder(
-          stream: _authService.userDocStream(),
+          stream: _userStream,
+          initialData: _authService.currentUserSnapshot,
           builder: (context, snapshot) {
             final data = snapshot.data?.data();
             final username = (data?["username"] as String?) ?? "";

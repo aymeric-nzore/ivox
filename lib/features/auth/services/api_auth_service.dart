@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:ivox/core/services/fcm_token_service.dart';
 import 'package:ivox/features/chat/services/chat_services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:ivox/core/services/api_service.dart';
@@ -58,6 +59,7 @@ class ApiAuthService {
       final token = _extractToken(response.data);
       //Sauvegarder le token
       await _apiService.saveToken(token);
+      await FcmTokenService().syncCurrentToken();
     } on DioException catch (error) {
       throw _mapDioError(error);
     }
@@ -76,6 +78,7 @@ class ApiAuthService {
       final token = _extractToken(response.data);
       //Sauvegarder le token
       await _apiService.saveToken(token);
+      await FcmTokenService().syncCurrentToken();
     } on DioException catch (error) {
       throw _mapDioError(error);
     }
@@ -114,6 +117,7 @@ class ApiAuthService {
       }
 
       await _apiService.saveToken(token);
+      await FcmTokenService().syncCurrentToken();
     } catch (error) {
       if (error is DioException) {
         throw _mapDioError(error);
@@ -128,6 +132,7 @@ class ApiAuthService {
   //logout
   Future<void> logout() async {
     try {
+      await FcmTokenService().removeCurrentToken();
       await _apiService.dio.post("/auth/logout");
     } on DioException {
       // On nettoie le token local meme si l'appel API echoue.

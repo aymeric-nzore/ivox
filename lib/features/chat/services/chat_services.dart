@@ -84,6 +84,14 @@ class ChatServices {
   Stream<Map<String, dynamic>> get appNotifications =>
       _appNotificationsController.stream;
 
+  Future<void> ensureSocketReady() async {
+    try {
+      await _initSocket();
+    } catch (_) {
+      // Ignore transient auth/network errors; caller may retry later.
+    }
+  }
+
   Future<void> _initSocket() async {
     await _apiService.init();
     final token = await _apiService.getToken();
@@ -159,6 +167,19 @@ class ChatServices {
 
     _socket!.on('app_notification', (data) {
       _appNotificationsController.add(_toMap(data));
+    });
+
+    _socket!.on('item_created', (data) {
+      final payload = _toMap(data);
+      final item = _toMap(payload['item']);
+      final itemType = (item['itemType'] ?? '').toString();
+      if (itemType == 'song') {
+        _appNotificationsController.add({
+          'type': 'shop_item_created',
+          'title': (item['title'] ?? 'Nouveau son').toString(),
+          'categorie': (item['categorie'] ?? '').toString(),
+        });
+      }
     });
 
     _socket!.connect();

@@ -49,6 +49,9 @@ class AuthService {
 
   AppUser? getUser() => _currentUser;
 
+  UserDocSnapshot get currentUserSnapshot =>
+      UserDocSnapshot(Map<String, dynamic>.from(_currentProfile));
+
   Stream<UserDocSnapshot> userDocStream() {
     _startProfileRefreshLoop();
     if (!_hasBootstrapped && !_isBootstrapping) {
