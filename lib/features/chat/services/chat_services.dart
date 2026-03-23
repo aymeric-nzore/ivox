@@ -72,10 +72,12 @@ class ChatServices {
 
   final StreamController<List<ChatMessage>> _messagesController =
       StreamController<List<ChatMessage>>.broadcast();
-    final StreamController<Map<String, String>> _presenceController =
+  final StreamController<Map<String, String>> _presenceController =
       StreamController<Map<String, String>>.broadcast();
-    final StreamController<Map<String, dynamic>> _appNotificationsController =
+  final StreamController<Map<String, dynamic>> _appNotificationsController =
       StreamController<Map<String, dynamic>>.broadcast();
+  final StreamController<Map<String, bool>> _typingController =
+      StreamController<Map<String, bool>>.broadcast();
 
   io.Socket? _socket;
   String? _currentUserId;
@@ -83,6 +85,7 @@ class ChatServices {
   final Map<String, List<ChatMessage>> _messages = {};
   final Map<String, String> _userStatus = {};
   final Map<String, DateTime?> _userLastSeen = {};
+  final Map<String, bool> _typingByUser = {};
 
   String? get currentUserId => _currentUserId;
   Stream<Map<String, dynamic>> get appNotifications =>
@@ -177,6 +180,22 @@ class ChatServices {
       _appNotificationsController.add(_toMap(data));
     });
 
+    _socket!.on('typing_start', (data) {
+      final payload = _toMap(data);
+      final fromUserId = (payload['fromUserId'] ?? '').toString();
+      if (fromUserId.isEmpty) return;
+      _typingByUser[fromUserId] = true;
+      _typingController.add(Map<String, bool>.from(_typingByUser));
+    });
+
+    _socket!.on('typing_stop', (data) {
+      final payload = _toMap(data);
+      final fromUserId = (payload['fromUserId'] ?? '').toString();
+      if (fromUserId.isEmpty) return;
+      _typingByUser[fromUserId] = false;
+      _typingController.add(Map<String, bool>.from(_typingByUser));
+    });
+
     _socket!.on('item_created', (data) {
       final payload = _toMap(data);
       final item = _toMap(payload['item']);
@@ -260,6 +279,16 @@ class ChatServices {
     }
   }
 
+  Future<void> sendTypingStart(String toUserId) async {
+    await _initSocket();
+    _socket?.emit('typing_start', {'toUserId': toUserId});
+  }
+
+  Future<void> sendTypingStop(String toUserId) async {
+    await _initSocket();
+    _socket?.emit('typing_stop', {'toUserId': toUserId});
+  }
+
   Future<void> markAsRead(String messageId) async {
     await _initSocket();
     await _apiService.dio.patch('/messages/$messageId/read');
@@ -318,6 +347,7 @@ class ChatServices {
     _messages.clear();
     _userStatus.clear();
     _userLastSeen.clear();
+    _typingByUser.clear();
   }
 
   String getUserStatus(String userId) {
@@ -338,6 +368,12 @@ class ChatServices {
     await _initSocket();
     yield getUserLastSeen(userId);
     yield* _presenceController.stream.map((_) => getUserLastSeen(userId));
+  }
+
+  Stream<bool> userTypingStream(String userId) async* {
+    await _initSocket();
+    yield _typingByUser[userId] ?? false;
+    yield* _typingController.stream.map((state) => state[userId] ?? false);
   }
 
   void _pushMessage(ChatMessage message) {

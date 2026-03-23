@@ -31,9 +31,11 @@ class _ChatPageState extends State<ChatPage> {
   late final Stream<List<ChatMessage>> _messageStream;
   late final Stream<String> _statusStream;
   late final Stream<DateTime?> _lastSeenStream;
+  late final Stream<bool> _typingStream;
   final Set<String> _readRequested = <String>{};
   String? _currentUserId;
   String? _error;
+  bool _typingSent = false;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _ChatPageState extends State<ChatPage> {
     _messageStream = _chatService.getMessages(widget.receiverID);
     _statusStream = _chatService.userStatusStream(widget.receiverID);
     _lastSeenStream = _chatService.userLastSeenStream(widget.receiverID);
+    _typingStream = _chatService.userTypingStream(widget.receiverID);
     _bootstrap();
   }
 
@@ -85,6 +88,8 @@ class _ChatPageState extends State<ChatPage> {
     if (text.isEmpty) return;
 
     try {
+      await _chatService.sendTypingStop(widget.receiverID);
+      _typingSent = false;
       await _chatService.sendMessage(widget.receiverID, text);
       _messageController.clear();
       if (mounted) {
@@ -113,6 +118,9 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
+    if (_typingSent) {
+      _chatService.sendTypingStop(widget.receiverID);
+    }
     _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
@@ -141,37 +149,48 @@ class _ChatPageState extends State<ChatPage> {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: StreamBuilder<String>(
-                stream: _statusStream,
-                builder: (context, snapshot) {
-                  final status =
-                      (snapshot.data ?? widget.receiverStatus ?? 'offline')
-                          .toLowerCase();
-                  final isOnline = status == 'online';
-                  return StreamBuilder<DateTime?>(
-                    stream: _lastSeenStream,
-                    initialData: widget.receiverLastSeen,
-                    builder: (context, lastSeenSnapshot) {
-                      final subtitle = isOnline
-                          ? 'En ligne'
-                          : _formatLastSeen(lastSeenSnapshot.data);
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            widget.receiverEmail,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            subtitle,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isOnline ? Colors.green : Colors.grey,
-                            ),
-                          ),
-                        ],
+              child: StreamBuilder<bool>(
+                stream: _typingStream,
+                initialData: false,
+                builder: (context, typingSnapshot) {
+                  final isTyping = typingSnapshot.data ?? false;
+                  return StreamBuilder<String>(
+                    stream: _statusStream,
+                    builder: (context, snapshot) {
+                      final status =
+                          (snapshot.data ?? widget.receiverStatus ?? 'offline')
+                              .toLowerCase();
+                      final isOnline = status == 'online';
+                      return StreamBuilder<DateTime?>(
+                        stream: _lastSeenStream,
+                        initialData: widget.receiverLastSeen,
+                        builder: (context, lastSeenSnapshot) {
+                          final subtitle = isTyping
+                              ? 'En train d\'ecrire...'
+                              : (isOnline
+                                    ? 'En ligne'
+                                    : _formatLastSeen(lastSeenSnapshot.data));
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                widget.receiverEmail,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                subtitle,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isTyping
+                                      ? Colors.teal
+                                      : (isOnline ? Colors.green : Colors.grey),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       );
                     },
                   );
@@ -382,6 +401,16 @@ class _ChatPageState extends State<ChatPage> {
                 focusNode: _focusNode,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _sendMessage(),
+                onChanged: (value) {
+                  final hasText = value.trim().isNotEmpty;
+                  if (hasText && !_typingSent) {
+                    _typingSent = true;
+                    _chatService.sendTypingStart(widget.receiverID);
+                  } else if (!hasText && _typingSent) {
+                    _typingSent = false;
+                    _chatService.sendTypingStop(widget.receiverID);
+                  }
+                },
                 decoration: const InputDecoration(
                   hintText: 'Envoyez un message...',
                   border: OutlineInputBorder(),
