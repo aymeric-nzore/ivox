@@ -7,6 +7,7 @@ class ChatPage extends StatefulWidget {
   final String receiverID;
   final String? receiverPhotoUrl;
   final String? receiverStatus;
+  final DateTime? receiverLastSeen;
 
   const ChatPage({
     super.key,
@@ -14,6 +15,7 @@ class ChatPage extends StatefulWidget {
     required this.receiverID,
     this.receiverPhotoUrl,
     this.receiverStatus,
+    this.receiverLastSeen,
   });
 
   @override
@@ -28,6 +30,7 @@ class _ChatPageState extends State<ChatPage> {
 
   late final Stream<List<ChatMessage>> _messageStream;
   late final Stream<String> _statusStream;
+  late final Stream<DateTime?> _lastSeenStream;
   final Set<String> _readRequested = <String>{};
   String? _currentUserId;
   String? _error;
@@ -37,7 +40,27 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     _messageStream = _chatService.getMessages(widget.receiverID);
     _statusStream = _chatService.userStatusStream(widget.receiverID);
+    _lastSeenStream = _chatService.userLastSeenStream(widget.receiverID);
     _bootstrap();
+  }
+
+  String _formatLastSeen(DateTime? dateTime) {
+    if (dateTime == null) return 'Hors ligne';
+
+    final now = DateTime.now();
+    final isToday =
+        now.year == dateTime.year && now.month == dateTime.month && now.day == dateTime.day;
+
+    final hh = dateTime.hour.toString().padLeft(2, '0');
+    final mm = dateTime.minute.toString().padLeft(2, '0');
+
+    if (isToday) {
+      return 'Vu aujourd\'hui a $hh:$mm';
+    }
+
+    final dd = dateTime.day.toString().padLeft(2, '0');
+    final mo = dateTime.month.toString().padLeft(2, '0');
+    return 'Vu le $dd/$mo a $hh:$mm';
   }
 
   Future<void> _bootstrap() async {
@@ -100,9 +123,10 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
+        centerTitle: false,
+        titleSpacing: 0,
         title: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           children: [
             CircleAvatar(
               radius: 18,
@@ -116,28 +140,43 @@ class _ChatPageState extends State<ChatPage> {
                   : null,
             ),
             const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(widget.receiverEmail),
-                StreamBuilder<String>(
-                  stream: _statusStream,
-                  builder: (context, snapshot) {
-                    final status =
-                        (snapshot.data ?? widget.receiverStatus ?? 'offline')
-                            .toLowerCase();
-                    final isOnline = status == 'online';
-                    return Text(
-                      isOnline ? 'En ligne' : 'Hors ligne',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isOnline ? Colors.green : Colors.grey,
-                      ),
-                    );
-                  },
-                ),
-              ],
+            Expanded(
+              child: StreamBuilder<String>(
+                stream: _statusStream,
+                builder: (context, snapshot) {
+                  final status =
+                      (snapshot.data ?? widget.receiverStatus ?? 'offline')
+                          .toLowerCase();
+                  final isOnline = status == 'online';
+                  return StreamBuilder<DateTime?>(
+                    stream: _lastSeenStream,
+                    initialData: widget.receiverLastSeen,
+                    builder: (context, lastSeenSnapshot) {
+                      final subtitle = isOnline
+                          ? 'En ligne'
+                          : _formatLastSeen(lastSeenSnapshot.data);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.receiverEmail,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            subtitle,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isOnline ? Colors.green : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -185,6 +224,16 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessageItem(ChatMessage message) {
     final isCurrentUser = message.sender == _currentUserId;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bubbleColor = isCurrentUser
+      ? (isDark ? const Color(0xFFE3B341) : Colors.amber)
+      : (isDark ? const Color(0xFF2B3138) : Colors.grey.shade300);
+    final messageTextColor = isCurrentUser
+      ? Colors.black87
+      : (isDark ? Colors.white : Colors.black87);
+    final timeTextColor = isCurrentUser
+      ? Colors.black54
+      : (isDark ? Colors.white70 : Colors.grey.shade700);
     final time =
         '${message.createdAt.hour.toString().padLeft(2, '0')}:${message.createdAt.minute.toString().padLeft(2, '0')}';
 
@@ -196,7 +245,7 @@ class _ChatPageState extends State<ChatPage> {
           padding: const EdgeInsets.all(16),
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(
-            color: isCurrentUser ? Colors.amber : Colors.grey[400],
+            color: bubbleColor,
             borderRadius: isCurrentUser
                 ? const BorderRadius.only(
                     topLeft: Radius.circular(16),
@@ -216,7 +265,11 @@ class _ChatPageState extends State<ChatPage> {
             children: [
               Text(
                 message.message,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: messageTextColor,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -224,7 +277,7 @@ class _ChatPageState extends State<ChatPage> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[600],
+                  color: timeTextColor,
                 ),
               ),
               if (isCurrentUser)

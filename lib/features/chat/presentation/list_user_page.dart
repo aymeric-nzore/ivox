@@ -476,6 +476,7 @@ class _ListUserPageState extends State<ListUserPage> {
               receiverID: userData.id,
               receiverPhotoUrl: userData.photoUrl,
               receiverStatus: userData.status,
+              receiverLastSeen: userData.lastSeen,
             ),
           ),
         );

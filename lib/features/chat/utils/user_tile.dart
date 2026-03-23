@@ -20,11 +20,22 @@ class UserTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final addFriendBg =
+        isDark ? const Color(0xFF1F3A5F) : const Color(0xFFE8F0FE);
+    final addFriendFg =
+        isDark ? const Color(0xFFD6E4FF) : const Color(0xFF0D47A1);
+    final blockBg =
+        isDark ? const Color(0xFF4A2426) : const Color(0xFFFFEBEE);
+    final blockFg =
+        isDark ? const Color(0xFFFFCDD2) : const Color(0xFFB71C1C);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(12),
-        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
@@ -55,29 +66,37 @@ class UserTile extends StatelessWidget {
                 width: 220,
                 direction: PopoverDirection.bottom,
                 context: context,
-                bodyBuilder: (context) => Column(
-                  children: [
-                    _ActionRow(
-                      icon: Icons.person_add_alt_1,
-                      label: 'Ajoutez en amis',
-                      color: Colors.blue.shade200,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        Navigator.of(context).pop();
-                        onAddFriend?.call();
-                      },
-                    ),
-                    _ActionRow(
-                      icon: Icons.block,
-                      label: 'Bloquez cet utilisateur',
-                      color: Colors.red.shade300,
-                      onTap: () {
-                        HapticFeedback.mediumImpact();
-                        Navigator.of(context).pop();
-                        onBlockUser?.call();
-                      },
-                    ),
-                  ],
+                bodyBuilder: (context) => Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      _ActionRow(
+                        icon: Icons.person_add_alt_1,
+                        label: 'Ajoutez en amis',
+                        color: addFriendBg,
+                        foregroundColor: addFriendFg,
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          Navigator.of(context).pop();
+                          onAddFriend?.call();
+                        },
+                      ),
+                      _ActionRow(
+                        icon: Icons.block,
+                        label: 'Bloquez cet utilisateur',
+                        color: blockBg,
+                        foregroundColor: blockFg,
+                        onTap: () {
+                          HapticFeedback.mediumImpact();
+                          Navigator.of(context).pop();
+                          onBlockUser?.call();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
               icon: Icon(Icons.more_vert, color: colorScheme.onSurfaceVariant),
@@ -93,12 +112,14 @@ class _ActionRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
+  final Color foregroundColor;
   final VoidCallback onTap;
 
   const _ActionRow({
     required this.icon,
     required this.label,
     required this.color,
+    required this.foregroundColor,
     required this.onTap,
   });
 
@@ -114,9 +135,15 @@ class _ActionRow extends StatelessWidget {
           child: Row(
             children: [
               const SizedBox(width: 8),
-              Icon(icon),
+              Icon(icon, color: foregroundColor),
               const SizedBox(width: 8),
-              Text(label),
+              Text(
+                label,
+                style: TextStyle(
+                  color: foregroundColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),

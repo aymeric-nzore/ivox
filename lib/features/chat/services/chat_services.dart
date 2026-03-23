@@ -10,6 +10,7 @@ class ChatUser {
   final String email;
   final String status;
   final String? photoUrl;
+  final DateTime? lastSeen;
 
   ChatUser({
     required this.id,
@@ -17,6 +18,7 @@ class ChatUser {
     required this.email,
     required this.status,
     this.photoUrl,
+    this.lastSeen,
   });
 
   factory ChatUser.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class ChatUser {
       email: (json['email'] ?? '').toString(),
       status: (json['status'] ?? 'offline').toString(),
       photoUrl: json['photoUrl']?.toString(),
+      lastSeen: DateTime.tryParse((json['lastSeen'] ?? '').toString()),
     );
   }
 }
@@ -79,6 +82,7 @@ class ChatServices {
   String? _activeToken;
   final Map<String, List<ChatMessage>> _messages = {};
   final Map<String, String> _userStatus = {};
+  final Map<String, DateTime?> _userLastSeen = {};
 
   String? get currentUserId => _currentUserId;
   Stream<Map<String, dynamic>> get appNotifications =>
@@ -160,8 +164,12 @@ class ChatServices {
       final payload = _toMap(data);
       final userId = (payload['userId'] ?? '').toString();
       final status = (payload['status'] ?? 'offline').toString();
+      final lastSeen = DateTime.tryParse((payload['lastSeen'] ?? '').toString());
       if (userId.isEmpty) return;
       _userStatus[userId] = status;
+      if (lastSeen != null) {
+        _userLastSeen[userId] = lastSeen;
+      }
       _presenceController.add(Map<String, String>.from(_userStatus));
     });
 
@@ -200,6 +208,7 @@ class ChatServices {
 
     for (final user in users) {
       _userStatus[user.id] = user.status;
+      _userLastSeen[user.id] = user.lastSeen;
     }
 
     return users;
@@ -308,16 +317,27 @@ class ChatServices {
     _activeToken = null;
     _messages.clear();
     _userStatus.clear();
+    _userLastSeen.clear();
   }
 
   String getUserStatus(String userId) {
     return _userStatus[userId] ?? 'offline';
   }
 
+  DateTime? getUserLastSeen(String userId) {
+    return _userLastSeen[userId];
+  }
+
   Stream<String> userStatusStream(String userId) async* {
     await _initSocket();
     yield getUserStatus(userId);
     yield* _presenceController.stream.map((state) => state[userId] ?? 'offline');
+  }
+
+  Stream<DateTime?> userLastSeenStream(String userId) async* {
+    await _initSocket();
+    yield getUserLastSeen(userId);
+    yield* _presenceController.stream.map((_) => getUserLastSeen(userId));
   }
 
   void _pushMessage(ChatMessage message) {
