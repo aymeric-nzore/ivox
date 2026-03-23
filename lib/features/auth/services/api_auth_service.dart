@@ -148,4 +148,52 @@ class ApiAuthService {
     final token = await _apiService.getToken();
     return token != null && token.isNotEmpty;
   }
+
+  Future<String> forgotPassword({required String email}) async {
+    try {
+      final response = await _apiService.dio.post(
+        '/auth/forgot-password',
+        data: {'email': email.trim()},
+      );
+
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return (data['message'] ?? 'Code OTP envoye').toString();
+      }
+      if (data is String && data.trim().isNotEmpty) {
+        return data;
+      }
+      return 'Code OTP envoye';
+    } on DioException catch (error) {
+      throw _mapDioError(error);
+    }
+  }
+
+  Future<String> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _apiService.dio.post(
+        '/auth/reset-password',
+        data: {
+          'email': email.trim(),
+          'code': code.trim(),
+          'newPassword': newPassword.trim(),
+        },
+      );
+
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return (data['message'] ?? 'Mot de passe reinitialise').toString();
+      }
+      if (data is String && data.trim().isNotEmpty) {
+        return data;
+      }
+      return 'Mot de passe reinitialise';
+    } on DioException catch (error) {
+      throw _mapDioError(error);
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ivox/features/auth/presentation/forgot_password_page.dart';
 import 'package:ivox/features/auth/presentation/register_page.dart';
 import 'package:ivox/features/auth/services/api_auth_service.dart';
 import 'package:ivox/features/onBoarding/on_boarding_page.dart';
@@ -161,6 +162,14 @@ class _LoginPageState extends State<LoginPage> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ForgotPasswordPage(),
+                            ),
+                          );
+                        },
                         child: Text(
                           "Mot de passe oublié ?",
                           style: TextStyle(
