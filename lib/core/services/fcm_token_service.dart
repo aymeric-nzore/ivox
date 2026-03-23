@@ -14,14 +14,24 @@ class FcmTokenService {
   StreamSubscription<String>? _tokenRefreshSub;
   bool _initialized = false;
 
-  Future<void> initialize() async {
-    if (_initialized) return;
+  Future<void> _ensureFirebaseReady() async {
+    if (Firebase.apps.isNotEmpty) return;
 
-    if (Firebase.apps.isEmpty) {
+    try {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+    } on FirebaseException catch (e) {
+      if (e.code != 'duplicate-app') {
+        rethrow;
+      }
     }
+  }
+
+  Future<void> initialize() async {
+    if (_initialized) return;
+
+    await _ensureFirebaseReady();
 
     final messaging = FirebaseMessaging.instance;
     await messaging.requestPermission(alert: true, badge: true, sound: true);
@@ -39,11 +49,7 @@ class FcmTokenService {
   }
 
   Future<void> syncCurrentToken() async {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    }
+    await _ensureFirebaseReady();
 
     final token = await FirebaseMessaging.instance.getToken();
     if (token != null && token.isNotEmpty) {
@@ -69,11 +75,7 @@ class FcmTokenService {
   }
 
   Future<void> removeCurrentToken() async {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    }
+    await _ensureFirebaseReady();
 
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null || token.isEmpty) return;
