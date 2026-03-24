@@ -152,6 +152,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isSmall = screenWidth < 360;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mot de passe oublie'),
@@ -159,10 +162,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+          padding: EdgeInsets.symmetric(
+            horizontal: isSmall ? 12 : 16,
+            vertical: isSmall ? 14 : 20,
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
               const Text(
                 'Entrez votre email pour recevoir un code OTP, puis choisissez un nouveau mot de passe.',
                 style: TextStyle(fontSize: 14),
@@ -249,7 +258,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     ),
                   ),
                 ),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
       ),

@@ -56,6 +56,9 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isSmall = screenWidth < 360;
+
     return Scaffold(
       appBar: AppBar(
         leading: Text(""),
@@ -74,7 +77,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                 "Skip",
                 textAlign: TextAlign.start,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: isSmall ? 14 : 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[500],
                 ),
@@ -101,14 +104,16 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
               });
             },
           ),
-          Container(
-            alignment: Alignment(0, 0.85),
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: isSmall ? 20 : 28,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 //Boutton pour revenir en arriere
                 IconButton(
-                  iconSize: 44,
+                  iconSize: isSmall ? 36 : 44,
                   onPressed: () {
                     setState(() {
                       _controller.previousPage(
@@ -134,7 +139,10 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                           MaterialPageRoute(builder: (builder) => LoginPage()),
                         ),
                         child: Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isSmall ? 12 : 14,
+                            vertical: isSmall ? 10 : 12,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.blue,
                             borderRadius: BorderRadius.circular(6),
@@ -150,7 +158,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                         ),
                       )
                     : IconButton(
-                        iconSize: 44,
+                        iconSize: isSmall ? 36 : 44,
                         onPressed: () {
                           setState(() {
                             _controller.nextPage(
