@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/shop/services/shop_services.dart';
 import 'package:ivox/features/shop/services/song_player_service.dart';
+import 'splash_animation_shop_page.dart';
 
 class ShopPage extends StatefulWidget {
   const ShopPage({super.key});
@@ -416,6 +417,18 @@ class _ShopPageState extends State<ShopPage> {
         title: const Text("Boutique"),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.auto_awesome_motion_rounded),
+            tooltip: 'Animations Splash',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SplashAnimationShopPage(),
+                ),
+              );
+            },
+          ),
           StreamBuilder(
             stream: _authService.userDocStream(),
             builder: (context, snapshot) {
