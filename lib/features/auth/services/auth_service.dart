@@ -123,13 +123,30 @@ class AuthService {
       throw Exception("Nom d'utilisateur invalide");
     }
 
-    _currentProfile = {..._currentProfile, 'username': normalized};
-    _currentUser = AppUser(
-      uid: _currentUser?.uid ?? '',
-      email: _currentUser?.email,
-      displayName: normalized,
-    );
-    _pushProfile();
+    await _apiService.init();
+
+    try {
+      final response = await _apiService.dio.patch(
+        '/auth/username',
+        data: {'username': normalized},
+      );
+
+      final data = _toMap(response.data);
+      final updatedUsername =
+          (data['username'] ?? normalized).toString().trim();
+
+      _currentProfile = {..._currentProfile, 'username': updatedUsername};
+      _currentUser = AppUser(
+        uid: _currentUser?.uid ?? '',
+        email: _currentUser?.email,
+        displayName: updatedUsername,
+      );
+      _pushProfile();
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? e.message ?? 'Erreur reseau',
+      );
+    }
   }
 
   Future<void> updatePhotoUrl(String photoUrl) async {

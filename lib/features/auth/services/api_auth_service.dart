@@ -15,8 +15,8 @@ class ApiAuthService {
   final ApiService _apiService = ApiService();
   static const String _googleServerClientId =
       '647081602209-1buqnm1m66bg3ebjrbia9tcvfvf73l0p.apps.googleusercontent.com';
-    static const String _googleWebClientId =
-      '647081602209-fj5lobp0nr2mg6vslf9bd0c220f42r4b.apps.googleusercontent.com';
+  static const String _googleWebClientId =
+      '647081602209-1buqnm1m66bg3ebjrbia9tcvfvf73l0p.apps.googleusercontent.com';
 
   String _extractToken(dynamic data) {
     if (data is Map<String, dynamic>) {
@@ -110,14 +110,19 @@ class ApiAuthService {
 
       final googleAuth = await googleUser.authentication;
       final idToken = googleAuth.idToken;
+      final accessToken = googleAuth.accessToken;
 
-      if (idToken == null || idToken.isEmpty) {
-        throw Exception('idToken Google manquant');
+      if ((idToken == null || idToken.isEmpty) &&
+          (accessToken == null || accessToken.isEmpty)) {
+        throw Exception('idToken/accessToken Google manquant');
       }
 
       final response = await _apiService.dio.post(
         '/auth/google/mobile',
-        data: {'idToken': idToken},
+        data: {
+          'idToken': idToken,
+          'accessToken': accessToken,
+        },
       );
 
       final token = _extractToken(response.data);
