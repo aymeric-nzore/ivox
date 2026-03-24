@@ -117,6 +117,14 @@ class _SplashAnimationShopPageState extends State<SplashAnimationShopPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final gridCrossAxisCount = screenWidth >= 1050
+        ? 4
+        : screenWidth >= 760
+            ? 3
+            : 2;
+    final gridAspectRatio = screenWidth < 380 ? 0.78 : 0.9;
+    final activePreviewHeight = screenWidth < 380 ? 120.0 : 150.0;
 
     if (_isLoading) {
       return Scaffold(
@@ -186,7 +194,7 @@ class _SplashAnimationShopPageState extends State<SplashAnimationShopPage> {
                   child: Column(
                     children: [
                       SizedBox(
-                        height: 150,
+                        height: activePreviewHeight,
                         child: Lottie.network(
                           _activeAnimation!.assetUrl,
                           fit: BoxFit.contain,
@@ -233,10 +241,9 @@ class _SplashAnimationShopPageState extends State<SplashAnimationShopPage> {
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 1,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: gridCrossAxisCount,
+                    childAspectRatio: gridAspectRatio,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
@@ -333,10 +340,9 @@ class _SplashAnimationShopPageState extends State<SplashAnimationShopPage> {
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: gridCrossAxisCount,
+                  childAspectRatio: gridAspectRatio,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                 ),

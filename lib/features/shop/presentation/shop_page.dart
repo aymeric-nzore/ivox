@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:ivox/core/services/api_service.dart';
 import 'package:ivox/features/auth/services/auth_service.dart';
+import 'package:ivox/features/shop/services/animation_service.dart'
+  as anim_service;
 import 'package:ivox/features/shop/services/shop_services.dart';
 import 'package:ivox/features/shop/services/song_player_service.dart';
+import 'package:lottie/lottie.dart';
 import 'splash_animation_shop_page.dart';
 
 class ShopPage extends StatefulWidget {
@@ -14,16 +18,22 @@ class ShopPage extends StatefulWidget {
 class _ShopPageState extends State<ShopPage> {
   final AuthService _authService = AuthService();
   final ShopServices _shopServices = ShopServices();
+  final anim_service.AnimationService _animationService =
+      anim_service.AnimationService(apiService: ApiService());
   final SongPlayerService _songPlayerService = SongPlayerService();
   late Future<Map<String, List<Map<String, dynamic>>>> _shopFuture;
   final Set<String> _ownedSongIds = <String>{};
+  final Set<String> _ownedAnimationIds = <String>{};
   final Set<String> _buyingItemIds = <String>{};
+  final Set<String> _equippingAnimationIds = <String>{};
+  String? _activeAnimationId;
 
   @override
   void initState() {
     super.initState();
     _shopFuture = _shopServices.getShopData();
     _loadOwnedItems();
+    _loadActiveAnimation();
   }
 
   Future<void> _reloadShop() async {
@@ -33,6 +43,7 @@ class _ShopPageState extends State<ShopPage> {
     await Future.wait([
       _shopFuture,
       _loadOwnedItems(),
+      _loadActiveAnimation(),
       _authService.refreshProfile(),
     ]);
   }
@@ -44,13 +55,36 @@ class _ShopPageState extends State<ShopPage> {
         .map((item) => (item["itemId"] ?? "").toString())
         .where((id) => id.isNotEmpty)
         .toSet();
+    final ownedAnimations = ownedItems
+        .where((item) => (item["type"] ?? "") == "animation")
+        .map((item) => (item["itemId"] ?? "").toString())
+        .where((id) => id.isNotEmpty)
+        .toSet();
 
     if (!mounted) return;
     setState(() {
       _ownedSongIds
         ..clear()
         ..addAll(ownedSongs);
+      _ownedAnimationIds
+        ..clear()
+        ..addAll(ownedAnimations);
     });
+  }
+
+  Future<void> _loadActiveAnimation() async {
+    try {
+      final active = await _animationService.getActiveSplashAnimation();
+      if (!mounted) return;
+      setState(() {
+        _activeAnimationId = active?.id;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _activeAnimationId = null;
+      });
+    }
   }
 
   Future<void> _buyItem(String type, Map<String, dynamic> item) async {
@@ -66,14 +100,21 @@ class _ShopPageState extends State<ShopPage> {
 
       if (type == "song") {
         _ownedSongIds.add(itemId);
+      } else if (type == "animation") {
+        _ownedAnimationIds.add(itemId);
       }
+
+      final currentBuyCount = _toInt(item["buyCount"]);
+      item["buyCount"] = currentBuyCount + 1;
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Achat reussi")),
       );
-
-      await _reloadShop();
+      await _authService.refreshProfile();
+      if (mounted) {
+        setState(() {});
+      }
     } catch (error) {
       final message = error.toString();
       final alreadyBought = message.toLowerCase().contains("deja") ||
@@ -123,6 +164,114 @@ class _ShopPageState extends State<ShopPage> {
         ),
       );
     }
+  }
+
+  Future<void> _toggleAnimationEquip({
+    required String animationId,
+    required bool isCurrentlyActive,
+  }) async {
+    if (_equippingAnimationIds.contains(animationId)) return;
+
+    setState(() {
+      _equippingAnimationIds.add(animationId);
+    });
+
+    try {
+      final message = isCurrentlyActive
+          ? await _animationService.unequipAnimation()
+          : await _animationService.equipAnimation(animationId);
+
+      if (!mounted) return;
+      setState(() {
+        _activeAnimationId = isCurrentlyActive ? null : animationId;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+      await _authService.refreshProfile();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _equippingAnimationIds.remove(animationId);
+        });
+      }
+    }
+  }
+
+  Future<void> _showAnimationPreview({
+    required String title,
+    required String assetUrl,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (dialogContext) {
+        return Dialog.fullscreen(
+          backgroundColor: Colors.black,
+          child: SafeArea(
+            child: Stack(
+              children: [
+                Center(
+                  child: assetUrl.isEmpty
+                      ? const Icon(
+                          Icons.animation,
+                          size: 88,
+                          color: Colors.white54,
+                        )
+                      : Lottie.network(
+                          assetUrl,
+                          fit: BoxFit.contain,
+                          frameRate: FrameRate.composition,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.animation,
+                            size: 88,
+                            color: Colors.white54,
+                          ),
+                        ),
+                ),
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  top: 10,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        icon: const Icon(Icons.close_rounded, color: Colors.white),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   int _toInt(dynamic value) {
@@ -183,6 +332,13 @@ class _ShopPageState extends State<ShopPage> {
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final icon = _iconForType(type);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardWidth = screenWidth < 360
+        ? 190.0
+        : screenWidth < 500
+            ? 220.0
+            : 250.0;
+    final sectionHeight = screenWidth < 360 ? 300.0 : 320.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,7 +367,7 @@ class _ShopPageState extends State<ShopPage> {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 310,
+          height: sectionHeight,
           child: items.isEmpty
               ? Container(
                   alignment: Alignment.center,
@@ -234,17 +390,25 @@ class _ShopPageState extends State<ShopPage> {
                     final category = (item["categorie"] ?? "").toString();
                     final imageUrl = (item["assetUrl"] ?? "").toString();
                     final canRenderImage = _isLikelyImageUrl(imageUrl);
+                    final isAnimation = type == "animation";
                     final itemId = (item["_id"] ?? "").toString();
                     final buyCount = _toInt(item["buyCount"]);
                     final isSong = type == "song";
                     final isOwnedSong = isSong && _ownedSongIds.contains(itemId);
+                    final isOwnedAnimation =
+                      isAnimation && _ownedAnimationIds.contains(itemId);
+                    final isAnimationActive =
+                      isAnimation && _activeAnimationId == itemId;
                     final isBuying = _buyingItemIds.contains(itemId);
+                    final isEquipping =
+                      isAnimation && _equippingAnimationIds.contains(itemId);
+                    final isSmallCard = cardWidth < 210;
                     final isPlaying =
                       _songPlayerService.currentItemId == itemId &&
                       _songPlayerService.isPlaying;
 
                     return Container(
-                      width: 220,
+                      width: cardWidth,
                       decoration: BoxDecoration(
                         color: colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
@@ -288,6 +452,26 @@ class _ShopPageState extends State<ShopPage> {
                                       ),
                                     ),
                                   )
+                                : isAnimation
+                                    ? ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(
+                                          top: Radius.circular(16),
+                                          bottom: Radius.circular(12),
+                                        ),
+                                        child: Lottie.network(
+                                          imageUrl,
+                                          fit: BoxFit.contain,
+                                          repeat: false,
+                                          frameRate: FrameRate.composition,
+                                          errorBuilder: (context, error, stackTrace) => Center(
+                                            child: Icon(
+                                              icon,
+                                              size: 34,
+                                              color: colorScheme.primary,
+                                            ),
+                                          ),
+                                        ),
+                                      )
                                 : Center(
                                     child: Icon(
                                       icon,
@@ -389,12 +573,84 @@ class _ShopPageState extends State<ShopPage> {
                                             ),
                                             label: Text(isPlaying ? "Pause" : "Jouer"),
                                           )
-                                        : ElevatedButton(
-                                            onPressed: isBuying
-                                                ? null
-                                                : () => _buyItem(type, item),
-                                            child: Text(isBuying ? "Achat..." : "Acheter"),
-                                          ),
+                                        : isAnimation
+                                            ? Column(
+                                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                children: [
+                                                  SizedBox(
+                                                    height: 34,
+                                                    child: OutlinedButton.icon(
+                                                      onPressed: () => _showAnimationPreview(
+                                                        title: title,
+                                                        assetUrl: imageUrl,
+                                                      ),
+                                                      icon: const Icon(Icons.fullscreen_rounded, size: 14),
+                                                      label: Text(
+                                                        isSmallCard ? "Preview" : "Aperçu",
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                        style: const TextStyle(fontSize: 11),
+                                                      ),
+                                                      style: OutlinedButton.styleFrom(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 6),
+                                                  SizedBox(
+                                                    height: 34,
+                                                    child: isOwnedAnimation
+                                                        ? ElevatedButton.icon(
+                                                            onPressed: isEquipping
+                                                                ? null
+                                                                : () => _toggleAnimationEquip(
+                                                                      animationId: itemId,
+                                                                      isCurrentlyActive: isAnimationActive,
+                                                                    ),
+                                                            icon: Icon(
+                                                              isAnimationActive
+                                                                  ? Icons.link_off_rounded
+                                                                  : Icons.check_circle_rounded,
+                                                              size: 14,
+                                                            ),
+                                                            label: Text(
+                                                              isEquipping
+                                                                  ? "..."
+                                                                  : (isAnimationActive
+                                                                      ? "Déséquiper"
+                                                                      : "Équiper"),
+                                                              maxLines: 1,
+                                                              overflow: TextOverflow.ellipsis,
+                                                              style: const TextStyle(fontSize: 11),
+                                                            ),
+                                                            style: ElevatedButton.styleFrom(
+                                                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                                                            ),
+                                                          )
+                                                        : ElevatedButton.icon(
+                                                            onPressed: isBuying
+                                                                ? null
+                                                                : () => _buyItem(type, item),
+                                                            icon: const Icon(Icons.shopping_cart_checkout_rounded, size: 14),
+                                                            label: Text(
+                                                              isBuying ? "Achat..." : "Acheter",
+                                                              maxLines: 1,
+                                                              overflow: TextOverflow.ellipsis,
+                                                              style: const TextStyle(fontSize: 11),
+                                                            ),
+                                                            style: ElevatedButton.styleFrom(
+                                                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                                                            ),
+                                                          ),
+                                                  ),
+                                                ],
+                                              )
+                                            : ElevatedButton(
+                                                onPressed: isBuying
+                                                    ? null
+                                                    : () => _buyItem(type, item),
+                                                child: Text(isBuying ? "Achat..." : "Acheter"),
+                                              ),
                                   ),
                                 ],
                               ),

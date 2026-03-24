@@ -15,52 +15,64 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   static const String _defaultSplashAsset = 'assets/lotties/Game asset.json';
   late final anim.AnimationService _animationService;
-  Future<anim.Animation?>? _activeAnimationFuture;
+  anim.Animation? _activeAnimation;
+  bool _isResolved = false;
 
   @override
   void initState() {
     super.initState();
     _animationService = anim.AnimationService(apiService: ApiService());
-    _activeAnimationFuture = _loadActiveAnimation();
+    _resolveSplashAnimation();
   }
 
-  Future<anim.Animation?> _loadActiveAnimation() async {
+  Future<void> _resolveSplashAnimation() async {
     try {
       await ApiService().init();
-      return await _animationService.getActiveSplashAnimation();
+      final active = await _animationService.getActiveSplashAnimation();
+      if (!mounted) return;
+      setState(() {
+        _activeAnimation = active;
+        _isResolved = true;
+      });
     } catch (_) {
-      return null;
+      if (!mounted) return;
+      setState(() {
+        _activeAnimation = null;
+        _isResolved = true;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<anim.Animation?>(
-      future: _activeAnimationFuture,
-      builder: (context, snapshot) {
-        final active = snapshot.data;
+    if (!_isResolved) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
-        return AnimatedSplashScreen(
-          curve: Curves.fastOutSlowIn,
-          duration: 2500,
-          splash: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Center(
-                child: active != null
-                    ? Lottie.network(
-                        active.assetUrl,
-                        errorBuilder: (_, __, ___) =>
-                            LottieBuilder.asset(_defaultSplashAsset),
-                      )
-                    : LottieBuilder.asset(_defaultSplashAsset),
-              ),
-            ],
-          ),
-          nextScreen: AuthGate(),
-          splashIconSize: 440,
-        );
-      },
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final splashSize = screenWidth < 380 ? 280.0 : 360.0;
+
+    return AnimatedSplashScreen(
+      curve: Curves.fastOutSlowIn,
+      duration: 2500,
+      splash: Center(
+        child: SizedBox(
+          width: splashSize,
+          height: splashSize,
+          child: _activeAnimation != null
+              ? Lottie.network(
+                  _activeAnimation!.assetUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) =>
+                      LottieBuilder.asset(_defaultSplashAsset),
+                )
+              : LottieBuilder.asset(_defaultSplashAsset),
+        ),
+      ),
+      nextScreen: AuthGate(),
+      splashIconSize: splashSize,
     );
   }
 }
