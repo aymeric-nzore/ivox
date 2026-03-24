@@ -31,13 +31,13 @@ Future<void> _initializeAppServices() async {
   // Keep web startup robust when mobile-only plugins are unavailable.
   if (!kIsWeb) {
     try {
-      await NotificationService().initialize();
+      await FcmTokenService().initialize();
     } catch (_) {}
   }
 
   if (!kIsWeb) {
     try {
-      await FcmTokenService().initialize();
+      await NotificationService().initialize();
     } catch (_) {}
   }
 }

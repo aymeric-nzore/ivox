@@ -1,7 +1,10 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import '../../../features/chat/services/chat_services.dart';
 import 'dart:async';
+import 'package:ivox/firebase_options.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -16,13 +19,30 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   StreamSubscription<Map<String, dynamic>>? _notificationSubscription;
+  StreamSubscription<RemoteMessage>? _fcmForegroundSubscription;
   final ChatServices _chatService = ChatServices();
   int _notificationId = 0;
   Timer? _socketRetryTimer;
+  final Map<String, DateTime> _recentNotificationKeys = {};
+
+  Future<void> _ensureFirebaseReady() async {
+    if (Firebase.apps.isNotEmpty) return;
+
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    } on FirebaseException catch (e) {
+      if (e.code != 'duplicate-app') {
+        rethrow;
+      }
+    }
+  }
 
   /// Initialize the notification service
   Future<void> initialize() async {
     tzdata.initializeTimeZones();
+    await _ensureFirebaseReady();
 
     // Android initialization
     const androidInitSettings =
@@ -62,6 +82,7 @@ class NotificationService {
 
     // Listen immediately; socket events will arrive once connected.
     _listenToSocketNotifications();
+    _listenToForegroundFcmNotifications();
 
     // Initialize socket and keep retrying in case token/network wasn't ready.
     await _initializeChatServiceAndListen();
@@ -99,7 +120,8 @@ class NotificationService {
       case 'friend_request':
         final fromUsername =
             (notification['fromUsername'] ?? 'Quelqu\'un').toString();
-        _showNotification(
+        _showNotificationDedup(
+          dedupKey: 'friend_request:${notification['fromUserId'] ?? fromUsername}',
           title: 'Nouvelle demande d\'ami',
           body: '$fromUsername a envoyé une demande d\'ami',
         );
@@ -110,7 +132,8 @@ class NotificationService {
             (notification['fromUsername'] ?? 'Utilisateur').toString();
         final action = (notification['action'] ?? '').toString();
         final accepted = action == 'accept';
-        _showNotification(
+        _showNotificationDedup(
+          dedupKey: 'friend_response:${notification['fromUserId'] ?? fromUsername}:$action',
           title: accepted
               ? '✓ Demande acceptée'
               : '✗ Demande refusée',
@@ -121,7 +144,8 @@ class NotificationService {
       case 'chat_message':
         final preview =
             (notification['preview'] ?? 'Nouveau message').toString();
-        _showNotification(
+        _showNotificationDedup(
+          dedupKey: 'chat_message:${notification['messageId'] ?? preview}',
           title: 'Nouveau message',
           body: preview,
         );
@@ -129,7 +153,8 @@ class NotificationService {
 
       case 'shop_item_created':
         final title = (notification['title'] ?? 'Nouveau son').toString();
-        _showNotification(
+        _showNotificationDedup(
+          dedupKey: 'shop_item_created:$title',
           title: 'Nouvelle musique disponible',
           body: title,
         );
@@ -176,9 +201,52 @@ class NotificationService {
     );
   }
 
+  void _listenToForegroundFcmNotifications() {
+    try {
+      _fcmForegroundSubscription ??= FirebaseMessaging.onMessage.listen((message) {
+        final data = message.data;
+        final type = (data['type'] ?? '').toString();
+        final messageId = (data['messageId'] ?? '').toString();
+
+        final title = message.notification?.title ??
+            (type == 'chat_message' ? 'Nouveau message' : 'Nouvelle notification');
+        final body = message.notification?.body ??
+            (data['preview'] ?? data['message'] ?? 'Vous avez une nouvelle notification')
+                .toString();
+
+        _showNotificationDedup(
+          dedupKey: 'fcm:$type:${messageId.isNotEmpty ? messageId : body}',
+          title: title,
+          body: body,
+        );
+      });
+    } catch (_) {
+      // Keep socket/local notifications active even if FCM listener fails to start.
+    }
+  }
+
+  void _showNotificationDedup({
+    required String dedupKey,
+    required String title,
+    required String body,
+  }) {
+    final now = DateTime.now();
+    _recentNotificationKeys.removeWhere(
+      (_, createdAt) => now.difference(createdAt).inSeconds > 5,
+    );
+
+    if (_recentNotificationKeys.containsKey(dedupKey)) {
+      return;
+    }
+
+    _recentNotificationKeys[dedupKey] = now;
+    _showNotification(title: title, body: body);
+  }
+
   /// Dispose resources
   void dispose() {
     _notificationSubscription?.cancel();
+    _fcmForegroundSubscription?.cancel();
     _socketRetryTimer?.cancel();
   }
 }

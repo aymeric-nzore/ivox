@@ -4,6 +4,8 @@ import 'package:ivox/features/chat/presentation/chat_page.dart';
 import 'package:ivox/features/chat/services/chat_services.dart';
 import 'package:ivox/features/chat/utils/user_tile.dart';
 import 'package:ivox/shared/utils/my_drawer_tile.dart';
+import 'package:ivox/shared/walkthrough/app_walkthrough_controller.dart';
+import 'package:ivox/shared/walkthrough/mascot_walkthrough_overlay.dart';
 import 'package:ivox/shared/widgets/main_bottom_nav_bar.dart';
 
 class ListUserPage extends StatefulWidget {
@@ -22,6 +24,8 @@ class ListUserPage extends StatefulWidget {
 
 class _ListUserPageState extends State<ListUserPage> {
   final _chatService = ChatServices();
+  final GlobalKey _chatListKey = GlobalKey();
+  final GlobalKey _firstUserKey = GlobalKey();
   bool _isDrawerOpened = false;
   late Future<List<ChatUser>> _usersFuture;
   StreamSubscription<Map<String, dynamic>>? _appNotificationSubscription;
@@ -433,8 +437,30 @@ class _ListUserPageState extends State<ListUserPage> {
       appBar: AppBar(
         title: Text("Chat"),
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              AppWalkthroughController.instance.start();
+              widget.onTabSelected(0);
+            },
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Tutoriel',
+          ),
+        ],
       ),
-      body: _buildUsersList(context),
+      body: Stack(
+        children: [
+          _buildUsersList(context),
+          MascotWalkthroughOverlay(
+            page: WalkthroughPage.chat,
+            targets: {
+              'chat_list': _chatListKey,
+              'chat_first_user': _firstUserKey,
+            },
+            onTabSelected: widget.onTabSelected,
+          ),
+        ],
+      ),
     );
   }
 
@@ -452,17 +478,28 @@ class _ListUserPageState extends State<ListUserPage> {
         return RefreshIndicator(
           onRefresh: _refreshUsers,
           child: ListView(
-            children: users
-                .map((userData) => _buildUserList(userData, context))
-                .toList(),
+            key: _chatListKey,
+            children: [
+              for (int i = 0; i < users.length; i++)
+                _buildUserList(
+                  users[i],
+                  context,
+                  tileKey: i == 0 ? _firstUserKey : null,
+                ),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildUserList(ChatUser userData, BuildContext context) {
+  Widget _buildUserList(
+    ChatUser userData,
+    BuildContext context, {
+    GlobalKey? tileKey,
+  }) {
     return UserTile(
+      key: tileKey,
       text: userData.username,
       photoUrl: userData.photoUrl,
       onAddFriend: () => _sendFriendRequest(userData),

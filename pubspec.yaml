@@ -83,6 +83,7 @@ flutter:
     - assets/icons/
     - assets/json/
     - assets/quizz_assets/
+    - assets/mascotte/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -10,6 +10,8 @@ import 'package:ivox/features/auth/services/api_auth_service.dart';
 import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/dictionnaire/presentation/dictionnaire_page.dart';
 import 'package:ivox/features/shop/presentation/shop_page.dart';
+import 'package:ivox/shared/walkthrough/app_walkthrough_controller.dart';
+import 'package:ivox/shared/walkthrough/mascot_walkthrough_overlay.dart';
 import 'package:ivox/shared/widgets/main_bottom_nav_bar.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -33,6 +35,9 @@ class _ProfilePageState extends State<ProfilePage> {
   final _authService = AuthService();
   final _usernameController = TextEditingController();
   final _imagePicker = ImagePicker();
+  final GlobalKey _usernameCardKey = GlobalKey();
+  final GlobalKey _privacyCardKey = GlobalKey();
+  final GlobalKey _shopCardKey = GlobalKey();
   bool _isEditingName = false;
   bool _isSavingName = false;
   bool _isUploadingPhoto = false;
@@ -329,6 +334,14 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void _startTutorialFromProfile() {
+    widget.onTabSelected(0);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      AppWalkthroughController.instance.start();
+    });
+  }
+
   @override
   void dispose() {
     _usernameController.dispose();
@@ -346,6 +359,11 @@ class _ProfilePageState extends State<ProfilePage> {
         leading: Text(""),
         centerTitle: true,
         actions: [
+          IconButton(
+            onPressed: _startTutorialFromProfile,
+            icon: const Icon(Icons.school_outlined),
+            tooltip: 'Revoir le tutoriel',
+          ),
           IconButton(onPressed: _handleLogout, icon: Icon(Icons.logout)),
         ],
       ),
@@ -355,12 +373,14 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: user == null
           ? const Center(child: Text("Utilisateur non connecté"))
-          : StreamBuilder(
-              stream: _authService.userDocStream(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+          : Stack(
+              children: [
+                StreamBuilder(
+                  stream: _authService.userDocStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
                 final data = snapshot.data?.data();
                 final username =
@@ -382,9 +402,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   _usernameController.text = username;
                 }
 
-                return ListView(
-                  padding: const EdgeInsets.all(16.0),
-                  children: [
+                    return ListView(
+                      padding: const EdgeInsets.all(16.0),
+                      children: [
                     Center(
                       child: Stack(
                         alignment: Alignment.bottomRight,
@@ -439,6 +459,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 16),
                     Card(
+                      key: _usernameCardKey,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -544,6 +565,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 8),
                     Card(
+                      key: _privacyCardKey,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -612,6 +634,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     SizedBox(height: 8),
                     Card(
+                      key: _shopCardKey,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -748,6 +771,26 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
+                    SizedBox(height: 8),
+                    Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: colorScheme.outline.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.school_outlined,
+                          color: colorScheme.primary,
+                        ),
+                        title: const Text('Revoir le tutoriel'),
+                        subtitle: const Text('Relancer la visite guidee complete'),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: _startTutorialFromProfile,
+                      ),
+                    ),
                     SizedBox(height: 24),
                     Row(
                       spacing: 6,
@@ -763,9 +806,20 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ],
                     ),
-                  ],
-                );
-              },
+                      ],
+                    );
+                  },
+                ),
+                MascotWalkthroughOverlay(
+                  page: WalkthroughPage.profile,
+                  targets: {
+                    'profile_username': _usernameCardKey,
+                    'profile_privacy': _privacyCardKey,
+                    'profile_shop': _shopCardKey,
+                  },
+                  onTabSelected: widget.onTabSelected,
+                ),
+              ],
             ),
     );
   }

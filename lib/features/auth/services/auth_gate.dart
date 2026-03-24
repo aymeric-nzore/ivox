@@ -33,7 +33,9 @@ class _AuthGateState extends State<AuthGate> {
           child = const Scaffold(body: Center(child: CircularProgressIndicator()));
         } else {
           final isLoggedIn = snapshot.data ?? false;
-          child = isLoggedIn ? const MainPage() : const OnBoardingPage();
+          child = isLoggedIn
+              ? const MainPage(startTutorial: false)
+              : const OnBoardingPage();
         }
 
         return AnimatedSwitcher(

@@ -57,7 +57,9 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MainPage()),
+        MaterialPageRoute(
+          builder: (context) => const MainPage(startTutorial: true),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -79,7 +81,9 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MainPage()),
+        MaterialPageRoute(
+          builder: (context) => const MainPage(startTutorial: true),
+        ),
       );
     } catch (e) {
       if (!mounted) return;

@@ -55,7 +55,9 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MainPage()),
+        MaterialPageRoute(
+          builder: (context) => const MainPage(startTutorial: false),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -77,7 +79,9 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MainPage()),
+        MaterialPageRoute(
+          builder: (context) => const MainPage(startTutorial: false),
+        ),
       );
     } catch (e) {
       if (!mounted) return;

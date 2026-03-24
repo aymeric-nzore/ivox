@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ivox/features/leaderboard/services/leaderboard_service.dart';
+import 'package:ivox/shared/walkthrough/app_walkthrough_controller.dart';
+import 'package:ivox/shared/walkthrough/mascot_walkthrough_overlay.dart';
 import 'package:ivox/shared/widgets/main_bottom_nav_bar.dart';
 
 class LeaderboardPage extends StatefulWidget {
@@ -18,6 +20,8 @@ class LeaderboardPage extends StatefulWidget {
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
   final LeaderboardService _leaderboardService = LeaderboardService();
+  final GlobalKey _topPlayerKey = GlobalKey();
+  final GlobalKey _listKey = GlobalKey();
 
   List<Map<String, dynamic>> _sortUsers(List<Map<String, dynamic>> users) {
     final sorted = List<Map<String, dynamic>>.from(users);
@@ -69,6 +73,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     final frameColor = _podiumColor(rank);
 
     return Container(
+      key: rank == 1 ? _topPlayerKey : null,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -154,39 +159,64 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         title: const Text("Leaderboard"),
         centerTitle: true,
         leading: const SizedBox.shrink(),
+        actions: [
+          IconButton(
+            onPressed: () {
+              AppWalkthroughController.instance.start();
+              widget.onTabSelected(0);
+            },
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Tutoriel',
+          ),
+        ],
       ),
       bottomNavigationBar: MainBottomNavBar(
         currentIndex: widget.currentIndex,
         onTap: widget.onTabSelected,
       ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _leaderboardService.getUserStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Stack(
+        children: [
+          StreamBuilder<List<Map<String, dynamic>>>(
+            stream: _leaderboardService.getUserStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text('Erreur lors du chargement du classement'),
-            );
-          }
+              if (snapshot.hasError) {
+                return const Center(
+                  child: Text('Erreur lors du chargement du classement'),
+                );
+              }
 
-          final users = snapshot.data ?? <Map<String, dynamic>>[];
-          if (users.isEmpty) {
-            return const Center(child: Text('Aucun utilisateur dans le classement'));
-          }
+              final users = snapshot.data ?? <Map<String, dynamic>>[];
+              if (users.isEmpty) {
+                return const Center(
+                  child: Text('Aucun utilisateur dans le classement'),
+                );
+              }
 
-          final sorted = _sortUsers(users);
+              final sorted = _sortUsers(users);
 
-          return ListView.builder(
-            padding: const EdgeInsets.only(top: 10, bottom: 14),
-            itemCount: sorted.length,
-            itemBuilder: (context, index) {
-              return _buildUserTile(context, sorted[index], index + 1);
+              return ListView.builder(
+                key: _listKey,
+                padding: const EdgeInsets.only(top: 10, bottom: 14),
+                itemCount: sorted.length,
+                itemBuilder: (context, index) {
+                  return _buildUserTile(context, sorted[index], index + 1);
+                },
+              );
             },
-          );
-        },
+          ),
+          MascotWalkthroughOverlay(
+            page: WalkthroughPage.leaderboard,
+            targets: {
+              'leaderboard_top': _topPlayerKey,
+              'leaderboard_list': _listKey,
+            },
+            onTabSelected: widget.onTabSelected,
+          ),
+        ],
       ),
     );
   }

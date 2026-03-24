@@ -3,6 +3,8 @@ import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/lessons/utils/grid_courses.dart';
 import 'package:ivox/features/quizz/listview_quizz.dart';
 import 'package:ivox/features/quizz/quizz_page.dart';
+import 'package:ivox/shared/walkthrough/app_walkthrough_controller.dart';
+import 'package:ivox/shared/walkthrough/mascot_walkthrough_overlay.dart';
 import 'package:ivox/shared/widgets/main_bottom_nav_bar.dart';
 import 'package:lottie/lottie.dart';
 
@@ -22,6 +24,8 @@ class LessonsPage extends StatefulWidget {
 
 class _LessonsPageState extends State<LessonsPage> {
   final _authService = AuthService();
+  final GlobalKey _searchKey = GlobalKey();
+  final GlobalKey _quizKey = GlobalKey();
   late final Stream<UserDocSnapshot> _userStream;
   final List<GridCourses> data = [
     GridCourses(
@@ -91,6 +95,14 @@ class _LessonsPageState extends State<LessonsPage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          IconButton(
+            onPressed: () {
+              AppWalkthroughController.instance.start();
+              widget.onTabSelected(0);
+            },
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Tutoriel',
+          ),
           StreamBuilder(
             stream: _userStream,
             initialData: _authService.currentUserSnapshot,
@@ -241,32 +253,37 @@ class _LessonsPageState extends State<LessonsPage> {
         currentIndex: widget.currentIndex,
         onTap: widget.onTabSelected,
       ),
-      body: CustomScrollView(
-        slivers: [
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
             sliver: SliverToBoxAdapter(
               child: Column(
                 children: [
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: "Recherchez des cours...",
-                      prefixIcon: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Icon(Icons.search),
-                          ),
-                          Container(
-                            width: 1,
-                            height: 24,
-                            color: Colors.grey.shade400,
-                          ),
-                        ],
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                  Container(
+                    key: _searchKey,
+                    child: TextField(
+                      decoration: InputDecoration(
+                        labelText: "Recherchez des cours...",
+                        prefixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8),
+                              child: Icon(Icons.search),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 24,
+                              color: Colors.grey.shade400,
+                            ),
+                          ],
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
                   ),
@@ -363,137 +380,149 @@ class _LessonsPageState extends State<LessonsPage> {
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "QUIZZ",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDarkMode ? Colors.white : Colors.black,
+              child: Container(
+                key: _quizKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "QUIZZ",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 12),
-                  SizedBox(
-                    height: 350,
-                    child: ListView.builder(
-                      itemCount: quizz_data.length,
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => QuizzPage(index: index),
+                    SizedBox(height: 12),
+                    SizedBox(
+                      height: 350,
+                      child: ListView.builder(
+                        itemCount: quizz_data.length,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => QuizzPage(index: index),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              margin: EdgeInsets.symmetric(horizontal: 8),
+                              width: 270,
+                              decoration: BoxDecoration(
+                                color: quizz_data[index].bgColor,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: quizz_data[index].bgColor.withOpacity(
+                                      0.4,
+                                    ),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                          child: Container(
-                            margin: EdgeInsets.symmetric(horizontal: 8),
-                            width: 270,
-                            decoration: BoxDecoration(
-                              color: quizz_data[index].bgColor,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: quizz_data[index].bgColor.withOpacity(
-                                    0.4,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  LottieBuilder.asset(
+                                    quizz_data[index].imagePath,
+                                    height: 220,
+                                    alignment: Alignment.center,
                                   ),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                LottieBuilder.asset(
-                                  quizz_data[index].imagePath,
-                                  height: 220,
-                                  alignment: Alignment.center,
-                                  
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  quizz_data[index].title,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    fontSize: 24,
+                                  SizedBox(height: 8),
+                                  Text(
+                                    quizz_data[index].title,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                    ),
+                                    textAlign: TextAlign.center,
                                   ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(height: 4),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  spacing: 4,
-                                  children: List.generate(
-                                    quizz_data[index].starCompt,
-                                    (index) =>
-                                        Icon(Icons.star, color: Colors.amber),
+                                  SizedBox(height: 4),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    spacing: 4,
+                                    children: List.generate(
+                                      quizz_data[index].starCompt,
+                                      (index) =>
+                                          Icon(Icons.star, color: Colors.amber),
+                                    ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20.0,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        quizz_data[index].description,
-                                        style: TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            16,
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20.0,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          quizz_data[index].description,
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                          color: Color(0xfff5f2ed),
                                         ),
-                                        child: Row(
-                                          spacing: 6,
-                                          children: [
-                                            Icon(
-                                              Icons.timelapse,
-                                              color: Colors.blue,
+                                        SizedBox(height: 4),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
                                             ),
-                                            Text(
-                                              quizz_data[index].times,
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
+                                            color: Color(0xfff5f2ed),
+                                          ),
+                                          child: Row(
+                                            spacing: 6,
+                                            children: [
+                                              Icon(
+                                                Icons.timelapse,
+                                                color: Colors.blue,
                                               ),
-                                            ),
-                                          ],
+                                              Text(
+                                                quizz_data[index].times,
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
+          ),
+            ],
+          ),
+          MascotWalkthroughOverlay(
+            page: WalkthroughPage.lessons,
+            targets: {
+              'lessons_search': _searchKey,
+              'lessons_quiz': _quizKey,
+            },
+            onTabSelected: widget.onTabSelected,
           ),
         ],
       ),

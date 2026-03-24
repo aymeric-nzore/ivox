@@ -3,9 +3,15 @@ import 'package:ivox/features/chat/presentation/list_user_page.dart';
 import 'package:ivox/features/leaderboard/leaderboard_page.dart';
 import 'package:ivox/features/lessons/presentation/lessons_page.dart';
 import 'package:ivox/features/profile/presentation/profile_page.dart';
+import 'package:ivox/shared/walkthrough/app_walkthrough_controller.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  final bool startTutorial;
+
+  const MainPage({
+    super.key,
+    this.startTutorial = false,
+  });
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -13,6 +19,16 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !widget.startTutorial) return;
+      AppWalkthroughController.instance.start();
+      _handleTabSelected(0);
+    });
+  }
 
   void _handleTabSelected(int index) {
     if (index == _currentIndex) return;
