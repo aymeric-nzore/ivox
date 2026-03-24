@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:ivox/core/services/fcm_token_service.dart';
 import 'package:ivox/features/chat/services/chat_services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -12,6 +15,8 @@ class ApiAuthService {
   final ApiService _apiService = ApiService();
   static const String _googleServerClientId =
       '647081602209-1buqnm1m66bg3ebjrbia9tcvfvf73l0p.apps.googleusercontent.com';
+    static const String _googleWebClientId =
+      '647081602209-fj5lobp0nr2mg6vslf9bd0c220f42r4b.apps.googleusercontent.com';
 
   String _extractToken(dynamic data) {
     if (data is Map<String, dynamic>) {
@@ -59,7 +64,9 @@ class ApiAuthService {
       final token = _extractToken(response.data);
       //Sauvegarder le token
       await _apiService.saveToken(token);
-      await FcmTokenService().syncCurrentToken();
+      if (!kIsWeb) {
+        unawaited(FcmTokenService().syncCurrentToken());
+      }
     } on DioException catch (error) {
       throw _mapDioError(error);
     }
@@ -78,7 +85,9 @@ class ApiAuthService {
       final token = _extractToken(response.data);
       //Sauvegarder le token
       await _apiService.saveToken(token);
-      await FcmTokenService().syncCurrentToken();
+      if (!kIsWeb) {
+        unawaited(FcmTokenService().syncCurrentToken());
+      }
     } on DioException catch (error) {
       throw _mapDioError(error);
     }
@@ -88,7 +97,8 @@ class ApiAuthService {
   Future<void> signInWithGoogle() async {
     try {
       final googleSignIn = GoogleSignIn(
-        serverClientId: _googleServerClientId,
+        clientId: kIsWeb ? _googleWebClientId : null,
+        serverClientId: kIsWeb ? null : _googleServerClientId,
       );
 
       // Avoid stale cached sessions when previous sign-in state is corrupted.
@@ -117,7 +127,9 @@ class ApiAuthService {
       }
 
       await _apiService.saveToken(token);
-      await FcmTokenService().syncCurrentToken();
+      if (!kIsWeb) {
+        unawaited(FcmTokenService().syncCurrentToken());
+      }
     } catch (error) {
       if (error is DioException) {
         throw _mapDioError(error);

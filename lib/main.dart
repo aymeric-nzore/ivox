@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:ivox/core/services/audio_background_state.dart';
 import 'package:ivox/core/services/fcm_token_service.dart';
 import 'package:ivox/core/services/notification_service.dart';
@@ -10,6 +13,12 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  runApp(const MyApp());
+
+  unawaited(_initializeAppServices());
+}
+
+Future<void> _initializeAppServices() async {
   try {
     await JustAudioBackground.init(
       androidNotificationChannelId: 'com.ivox.app.audio',
@@ -19,11 +28,18 @@ void main() async {
     AudioBackgroundState.isInitialized = true;
   } catch (_) {}
 
-  // Initialize notification service to listen for Socket.IO notifications globally
-  await NotificationService().initialize();
-  await FcmTokenService().initialize();
+  // Keep web startup robust when mobile-only plugins are unavailable.
+  if (!kIsWeb) {
+    try {
+      await NotificationService().initialize();
+    } catch (_) {}
+  }
 
-  runApp(const MyApp());
+  if (!kIsWeb) {
+    try {
+      await FcmTokenService().initialize();
+    } catch (_) {}
+  }
 }
 
 class MyApp extends StatelessWidget {

@@ -1,4 +1,5 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ivox/core/services/api_service.dart';
 import 'package:ivox/features/auth/services/auth_gate.dart';
@@ -22,6 +23,11 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     _animationService = anim.AnimationService(apiService: ApiService());
+    if (kIsWeb) {
+      _isResolved = true;
+      _activeAnimation = null;
+      return;
+    }
     _resolveSplashAnimation();
   }
 
@@ -56,7 +62,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     return AnimatedSplashScreen(
       curve: Curves.fastOutSlowIn,
-      duration: 2500,
+      duration: kIsWeb ? 900 : 2500,
       splash: Center(
         child: SizedBox(
           width: splashSize,

@@ -10,9 +10,9 @@ class ApiService {
     BaseOptions(
       baseUrl: "https://backend-q1iu.onrender.com/api",
       headers: {"Content-Type": "application/json"},
-      connectTimeout: Duration(seconds: 3),
-      receiveTimeout: Duration(seconds: 3),
-      sendTimeout: Duration(seconds: 5),
+      connectTimeout: Duration(seconds: 20),
+      receiveTimeout: Duration(seconds: 20),
+      sendTimeout: Duration(seconds: 20),
     ),
   );
   Dio get dio => _dio;
