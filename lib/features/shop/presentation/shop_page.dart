@@ -5,7 +5,10 @@ import 'package:ivox/features/shop/services/animation_service.dart'
   as anim_service;
 import 'package:ivox/features/shop/services/shop_services.dart';
 import 'package:ivox/features/shop/services/song_player_service.dart';
+import 'package:ivox/shared/walkthrough/app_walkthrough_controller.dart';
+import 'package:ivox/shared/walkthrough/mascot_walkthrough_overlay.dart';
 import 'package:lottie/lottie.dart';
+import 'music_shop_page.dart';
 import 'splash_animation_shop_page.dart';
 
 class ShopPage extends StatefulWidget {
@@ -26,6 +29,9 @@ class _ShopPageState extends State<ShopPage> {
   final Set<String> _ownedAnimationIds = <String>{};
   final Set<String> _buyingItemIds = <String>{};
   final Set<String> _equippingAnimationIds = <String>{};
+  final GlobalKey _introCardKey = GlobalKey();
+  final GlobalKey _songsSectionKey = GlobalKey();
+  final ScrollController _scrollController = ScrollController();
   String? _activeAnimationId;
 
   @override
@@ -34,6 +40,38 @@ class _ShopPageState extends State<ShopPage> {
     _shopFuture = _shopServices.getShopData();
     _loadOwnedItems();
     _loadActiveAnimation();
+    AppWalkthroughController.instance.addListener(_onWalkthroughChanged);
+  }
+
+  void _onWalkthroughChanged() {
+    final walkthrough = AppWalkthroughController.instance;
+    final step = walkthrough.currentStep;
+    if (!mounted || step == null || step.page != WalkthroughPage.shop) {
+      return;
+    }
+
+    GlobalKey? targetKey;
+    switch (step.targetId) {
+      case 'shop_intro':
+        targetKey = _introCardKey;
+        break;
+      case 'shop_songs':
+        targetKey = _songsSectionKey;
+        break;
+    }
+
+    if (targetKey == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final targetContext = targetKey!.currentContext;
+      if (targetContext == null || !mounted) return;
+      Scrollable.ensureVisible(
+        targetContext,
+        duration: const Duration(milliseconds: 350),
+        alignment: 0.2,
+        curve: Curves.easeOutCubic,
+      );
+    });
   }
 
   Future<void> _reloadShop() async {
@@ -667,12 +705,31 @@ class _ShopPageState extends State<ShopPage> {
   }
 
   @override
+  void dispose() {
+    AppWalkthroughController.instance.removeListener(_onWalkthroughChanged);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Boutique"),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.library_music_rounded),
+            tooltip: 'Boutique Musiques',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MusicShopPage(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.auto_awesome_motion_rounded),
             tooltip: 'Animations Splash',
@@ -723,46 +780,63 @@ class _ShopPageState extends State<ShopPage> {
           ),
         ],
       ),
-      body: FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
-        future: _shopFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Stack(
+        children: [
+          FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
+            future: _shopFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (snapshot.hasError) {
-            return const Center(child: Text("Erreur de chargement de la boutique"));
-          }
+              if (snapshot.hasError) {
+                return const Center(child: Text("Erreur de chargement de la boutique"));
+              }
 
-          final data = snapshot.data ?? const <String, List<Map<String, dynamic>>>{};
+              final data = snapshot.data ?? const <String, List<Map<String, dynamic>>>{};
 
-          return RefreshIndicator(
-            onRefresh: _reloadShop,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Text(
-                    "Decouvre les meilleurs items et achete en un clic.",
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
+              return RefreshIndicator(
+                onRefresh: _reloadShop,
+                child: ListView(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  children: [
+                    Container(
+                      key: _introCardKey,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Text(
+                        "Decouvre les meilleurs items et achete en un clic.",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      key: _songsSectionKey,
+                      child: _buildSection(context, "song", data["song"] ?? const []),
+                    ),
+                    const SizedBox(height: 18),
+                    _buildSection(context, "animation", data["animation"] ?? const []),
+                    const SizedBox(height: 18),
+                    _buildSection(context, "avatar", data["avatar"] ?? const []),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                _buildSection(context, "song", data["song"] ?? const []),
-                const SizedBox(height: 18),
-                _buildSection(context, "animation", data["animation"] ?? const []),
-                const SizedBox(height: 18),
-                _buildSection(context, "avatar", data["avatar"] ?? const []),
-              ],
-            ),
-          );
-        },
+              );
+            },
+          ),
+          MascotWalkthroughOverlay(
+            page: WalkthroughPage.shop,
+            targets: {
+              'shop_intro': _introCardKey,
+              'shop_songs': _songsSectionKey,
+            },
+            onTabSelected: (_) {},
+          ),
+        ],
       ),
     );
   }

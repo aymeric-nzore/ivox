@@ -4,7 +4,7 @@ import '../services/animation_service.dart' as anim;
 import '../../../core/services/api_service.dart';
 
 class SplashAnimationShopPage extends StatefulWidget {
-  const SplashAnimationShopPage({Key? key}) : super(key: key);
+  const SplashAnimationShopPage({super.key});
 
   @override
   State<SplashAnimationShopPage> createState() =>

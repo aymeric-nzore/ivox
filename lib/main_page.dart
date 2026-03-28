@@ -4,6 +4,7 @@ import 'package:ivox/features/leaderboard/leaderboard_page.dart';
 import 'package:ivox/features/lessons/presentation/lessons_page.dart';
 import 'package:ivox/features/profile/presentation/profile_page.dart';
 import 'package:ivox/shared/walkthrough/app_walkthrough_controller.dart';
+import 'package:ivox/shared/walkthrough/tutorial_launch_service.dart';
 
 class MainPage extends StatefulWidget {
   final bool startTutorial;
@@ -23,8 +24,14 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !widget.startTutorial) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      final shouldStart = await TutorialLaunchService.instance
+          .shouldStartTutorial(requestedByRoute: widget.startTutorial);
+      if (!mounted || !shouldStart) return;
+
+      await TutorialLaunchService.instance.markTutorialSeenForCurrentUser();
       AppWalkthroughController.instance.start();
       _handleTabSelected(0);
     });

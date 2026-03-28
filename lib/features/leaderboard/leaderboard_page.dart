@@ -21,7 +21,7 @@ class LeaderboardPage extends StatefulWidget {
 class _LeaderboardPageState extends State<LeaderboardPage> {
   final LeaderboardService _leaderboardService = LeaderboardService();
   final GlobalKey _topPlayerKey = GlobalKey();
-  final GlobalKey _listKey = GlobalKey();
+  final GlobalKey _globalListKey = GlobalKey();
 
   List<Map<String, dynamic>> _sortUsers(List<Map<String, dynamic>> users) {
     final sorted = List<Map<String, dynamic>>.from(users);
@@ -73,7 +73,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     final frameColor = _podiumColor(rank);
 
     return Container(
-      key: rank == 1 ? _topPlayerKey : null,
+      key: rank == 1
+          ? _topPlayerKey
+          : (rank == 2 ? _globalListKey : null),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -159,16 +161,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         title: const Text("Leaderboard"),
         centerTitle: true,
         leading: const SizedBox.shrink(),
-        actions: [
-          IconButton(
-            onPressed: () {
-              AppWalkthroughController.instance.start();
-              widget.onTabSelected(0);
-            },
-            icon: const Icon(Icons.help_outline),
-            tooltip: 'Tutoriel',
-          ),
-        ],
       ),
       bottomNavigationBar: MainBottomNavBar(
         currentIndex: widget.currentIndex,
@@ -199,7 +191,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               final sorted = _sortUsers(users);
 
               return ListView.builder(
-                key: _listKey,
                 padding: const EdgeInsets.only(top: 10, bottom: 14),
                 itemCount: sorted.length,
                 itemBuilder: (context, index) {
@@ -212,7 +203,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             page: WalkthroughPage.leaderboard,
             targets: {
               'leaderboard_top': _topPlayerKey,
-              'leaderboard_list': _listKey,
+              'leaderboard_list': _globalListKey,
             },
             onTabSelected: widget.onTabSelected,
           ),

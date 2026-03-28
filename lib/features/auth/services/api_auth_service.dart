@@ -149,10 +149,18 @@ class ApiAuthService {
   //logout
   Future<void> logout() async {
     try {
-      await FcmTokenService().removeCurrentToken();
+      if (!kIsWeb) {
+        try {
+          await FcmTokenService().removeCurrentToken();
+        } catch (_) {
+          // Ignore token removal issues and continue logout.
+        }
+      }
       await _apiService.dio.post("/auth/logout");
     } on DioException {
       // On nettoie le token local meme si l'appel API echoue.
+    } catch (_) {
+      // On nettoie aussi le token local si une autre erreur survient (ex web plugins).
     } finally {
       ChatServices().reset();
       await _apiService.logout();

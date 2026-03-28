@@ -8,6 +8,14 @@ import 'package:ivox/firebase_options.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
+  static const String channelId = 'ivox_notifications';
+  static const AndroidNotificationChannel _androidChannel =
+      AndroidNotificationChannel(
+        channelId,
+        'IVOX Notifications',
+        description: 'Notifications pour demandes d\'ami, messages, etc',
+        importance: Importance.max,
+      );
 
   factory NotificationService() {
     return _instance;
@@ -79,6 +87,19 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+
+    // Ensure the same channel exists for FCM background/system notifications.
+    await _notifications
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(_androidChannel);
+
+    // Keep iOS heads-up presentation enabled when app is foreground.
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
     // Listen immediately; socket events will arrive once connected.
     _listenToSocketNotifications();
@@ -173,7 +194,7 @@ class NotificationService {
     _notificationId++;
 
     const androidDetails = AndroidNotificationDetails(
-      'ivox_notifications',
+      channelId,
       'IVOX Notifications',
       channelDescription: 'Notifications pour demandes d\'ami, messages, etc',
       importance: Importance.max,

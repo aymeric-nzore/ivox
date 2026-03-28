@@ -4,6 +4,7 @@ import 'package:popover/popover.dart';
 
 class UserTile extends StatelessWidget {
   final String text;
+  final String? subtitle;
   final String? photoUrl;
   final VoidCallback onTap;
   final VoidCallback? onAddFriend;
@@ -11,6 +12,7 @@ class UserTile extends StatelessWidget {
   const UserTile({
     super.key,
     required this.text,
+    this.subtitle,
     this.photoUrl,
     required this.onTap,
     this.onAddFriend,
@@ -54,10 +56,25 @@ class UserTile extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                text,
-                style: TextStyle(color: colorScheme.onSurfaceVariant),
-                overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    text,
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (subtitle != null && subtitle!.isNotEmpty)
+                    Text(
+                      subtitle!,
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
+                        fontSize: 12,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
               ),
             ),
             IconButton(

@@ -95,14 +95,6 @@ class _LessonsPageState extends State<LessonsPage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-            onPressed: () {
-              AppWalkthroughController.instance.start();
-              widget.onTabSelected(0);
-            },
-            icon: const Icon(Icons.help_outline),
-            tooltip: 'Tutoriel',
-          ),
           StreamBuilder(
             stream: _userStream,
             initialData: _authService.currentUserSnapshot,

@@ -36,8 +36,10 @@ class _ProfilePageState extends State<ProfilePage> {
   final _usernameController = TextEditingController();
   final _imagePicker = ImagePicker();
   final GlobalKey _usernameCardKey = GlobalKey();
-  final GlobalKey _privacyCardKey = GlobalKey();
+  final GlobalKey _publicProfileCardKey = GlobalKey();
+  final GlobalKey _dictionaryCardKey = GlobalKey();
   final GlobalKey _shopCardKey = GlobalKey();
+  final ScrollController _scrollController = ScrollController();
   bool _isEditingName = false;
   bool _isSavingName = false;
   bool _isUploadingPhoto = false;
@@ -49,6 +51,44 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _authService.refreshProfile();
+    AppWalkthroughController.instance.addListener(_onWalkthroughChanged);
+  }
+
+  void _onWalkthroughChanged() {
+    final walkthrough = AppWalkthroughController.instance;
+    final step = walkthrough.currentStep;
+    if (!mounted || step == null || step.page != WalkthroughPage.profile) {
+      return;
+    }
+
+    GlobalKey? targetKey;
+    switch (step.targetId) {
+      case 'profile_username':
+        targetKey = _usernameCardKey;
+        break;
+      case 'profile_privacy':
+        targetKey = _publicProfileCardKey;
+        break;
+      case 'profile_dictionary':
+        targetKey = _dictionaryCardKey;
+        break;
+      case 'profile_shop':
+        targetKey = _shopCardKey;
+        break;
+    }
+
+    if (targetKey == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final targetContext = targetKey!.currentContext;
+      if (targetContext == null || !mounted) return;
+      Scrollable.ensureVisible(
+        targetContext,
+        duration: const Duration(milliseconds: 350),
+        alignment: 0.2,
+        curve: Curves.easeOutCubic,
+      );
+    });
   }
 
   Future<void> _handleLogout() async {
@@ -335,15 +375,16 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _startTutorialFromProfile() {
-    widget.onTabSelected(0);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      AppWalkthroughController.instance.start();
-    });
+    final walkthrough = AppWalkthroughController.instance;
+    walkthrough.stop();
+    walkthrough.start();
+    widget.onTabSelected(AppWalkthroughController.tabIndexFromPage(WalkthroughPage.lessons));
   }
 
   @override
   void dispose() {
+    AppWalkthroughController.instance.removeListener(_onWalkthroughChanged);
+    _scrollController.dispose();
     _usernameController.dispose();
     super.dispose();
   }
@@ -359,11 +400,6 @@ class _ProfilePageState extends State<ProfilePage> {
         leading: Text(""),
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: _startTutorialFromProfile,
-            icon: const Icon(Icons.school_outlined),
-            tooltip: 'Revoir le tutoriel',
-          ),
           IconButton(onPressed: _handleLogout, icon: Icon(Icons.logout)),
         ],
       ),
@@ -403,6 +439,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 }
 
                     return ListView(
+                      controller: _scrollController,
                       padding: const EdgeInsets.all(16.0),
                       children: [
                     Center(
@@ -565,7 +602,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 8),
                     Card(
-                      key: _privacyCardKey,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -634,7 +670,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     SizedBox(height: 8),
                     Card(
-                      key: _shopCardKey,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -666,6 +701,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                     SizedBox(height: 8),
                     Card(
+                      key: _publicProfileCardKey,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -699,6 +735,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                     SizedBox(height: 8),
                     Card(
+                      key: _dictionaryCardKey,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -736,6 +773,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     SizedBox(height: 8),
                     Card(
+                      key: _shopCardKey,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -814,10 +852,25 @@ class _ProfilePageState extends State<ProfilePage> {
                   page: WalkthroughPage.profile,
                   targets: {
                     'profile_username': _usernameCardKey,
-                    'profile_privacy': _privacyCardKey,
+                    'profile_privacy': _publicProfileCardKey,
+                    'profile_dictionary': _dictionaryCardKey,
                     'profile_shop': _shopCardKey,
                   },
                   onTabSelected: widget.onTabSelected,
+                  onBeforeNext: (overlayContext, step) async {
+                    if (step.targetId != 'profile_shop') return;
+                    final walkthrough = AppWalkthroughController.instance;
+                    final nextStep = walkthrough.nextStep;
+                    if (nextStep == null || nextStep.page != WalkthroughPage.shop) {
+                      return;
+                    }
+
+                    Navigator.of(overlayContext).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ShopPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

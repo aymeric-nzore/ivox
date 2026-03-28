@@ -63,6 +63,8 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
       appBar: AppBar(
         leading: Text(""),
         elevation: 0,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         actions: [
           GestureDetector(
             onTap: () {
@@ -130,7 +132,12 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                 SmoothPageIndicator(
                   controller: _controller,
                   count: 3,
-                  effect: WormEffect(activeDotColor: _colors[_currentIndex]),
+                  effect: WormEffect(
+                    activeDotColor: _colors[_currentIndex],
+                    dotColor: Colors.grey[300]!,
+                    dotHeight: 8,
+                    dotWidth: 8,
+                  ),
                 ),
                 _currentIndex == 2
                     ? GestureDetector(

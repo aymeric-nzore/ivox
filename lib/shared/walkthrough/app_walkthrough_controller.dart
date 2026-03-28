@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-enum WalkthroughPage { lessons, leaderboard, chat, profile }
+enum WalkthroughPage { lessons, leaderboard, chat, profile, shop }
 
 class WalkthroughStep {
   final WalkthroughPage page;
@@ -28,30 +28,30 @@ class AppWalkthroughController extends ChangeNotifier {
     WalkthroughStep(
       page: WalkthroughPage.lessons,
       targetId: 'lessons_search',
-      title: 'Recherche de cours',
-      description: 'Trouve rapidement tes cours avec cette barre.',
-      mascotAsset: 'assets/mascotte/im1.png',
+      title: 'Bonjour, je suis Mylann',
+      description: 'Je vais te montrer les parties importantes de l\'application.',
+      mascotAsset: 'assets/mascotte/im6.png',
     ),
     WalkthroughStep(
       page: WalkthroughPage.lessons,
       targetId: 'lessons_quiz',
       title: 'Quiz interactifs',
-      description: 'Lance un quiz et gagne de XP.',
+      description: 'Lance un quiz et gagne de l\'XP.',
       mascotAsset: 'assets/mascotte/im2.png',
     ),
     WalkthroughStep(
       page: WalkthroughPage.leaderboard,
       targetId: 'leaderboard_top',
       title: 'Top joueur',
-      description: 'Voici le joueur en tete du classement.',
-      mascotAsset: 'assets/mascotte/im3.png',
+      description: 'Voici le joueur en tête du classement.',
+      mascotAsset: 'assets/mascotte/im5.png',
     ),
     WalkthroughStep(
       page: WalkthroughPage.leaderboard,
       targetId: 'leaderboard_list',
       title: 'Classement global',
-      description: 'Compare ton niveau et ton XP avec la communaute.',
-      mascotAsset: 'assets/mascotte/im1.png',
+      description: 'Compare ton niveau et ton XP avec la communauté.',
+      mascotAsset: 'assets/mascotte/im4.png',
     ),
     WalkthroughStep(
       page: WalkthroughPage.chat,
@@ -63,7 +63,7 @@ class AppWalkthroughController extends ChangeNotifier {
     WalkthroughStep(
       page: WalkthroughPage.chat,
       targetId: 'chat_first_user',
-      title: 'Demarrer une conversation',
+      title: 'Démarrer une conversation',
       description: 'Touchez un utilisateur pour ouvrir le chat.',
       mascotAsset: 'assets/mascotte/im3.png',
     ),
@@ -77,16 +77,37 @@ class AppWalkthroughController extends ChangeNotifier {
     WalkthroughStep(
       page: WalkthroughPage.profile,
       targetId: 'profile_privacy',
-      title: 'Confidentialite',
-      description: 'Controle qui peut voir ton profil.',
-      mascotAsset: 'assets/mascotte/im2.png',
+      title: 'Confidentialité',
+      description: 'Contrôle qui peut voir ton profil.',
+      mascotAsset: 'assets/mascotte/im4.png',
+    ),
+    WalkthroughStep(
+      page: WalkthroughPage.profile,
+      targetId: 'profile_dictionary',
+      title: 'Dictionnaire',
+      description: 'Utilise le dictionnaire pour retrouver rapidement un mot.',
+      mascotAsset: 'assets/mascotte/im4.png',
     ),
     WalkthroughStep(
       page: WalkthroughPage.profile,
       targetId: 'profile_shop',
       title: 'Boutique',
-      description: 'Accede a la boutique pour personnaliser ton experience.',
-      mascotAsset: 'assets/mascotte/im3.png',
+      description: 'Accède à la boutique pour personnaliser ton expérience.',
+      mascotAsset: 'assets/mascotte/im6.png',
+    ),
+    WalkthroughStep(
+      page: WalkthroughPage.shop,
+      targetId: 'shop_intro',
+      title: 'Bienvenue dans la boutique',
+      description: 'Ici, tu peux acheter des musiques, animations et avatars.',
+      mascotAsset: 'assets/mascotte/im5.png',
+    ),
+    WalkthroughStep(
+      page: WalkthroughPage.shop,
+      targetId: 'shop_songs',
+      title: 'Rayon musiques',
+      description: 'Commence par cette section pour acheter puis jouer tes sons.',
+      mascotAsset: 'assets/mascotte/im5.png',
     ),
   ];
 
@@ -131,6 +152,10 @@ class AppWalkthroughController extends ChangeNotifier {
     notifyListeners();
   }
 
+  static bool isBottomTabPage(WalkthroughPage page) {
+    return page != WalkthroughPage.shop;
+  }
+
   static int tabIndexFromPage(WalkthroughPage page) {
     switch (page) {
       case WalkthroughPage.lessons:
@@ -140,6 +165,8 @@ class AppWalkthroughController extends ChangeNotifier {
       case WalkthroughPage.chat:
         return 2;
       case WalkthroughPage.profile:
+        return 3;
+      case WalkthroughPage.shop:
         return 3;
     }
   }

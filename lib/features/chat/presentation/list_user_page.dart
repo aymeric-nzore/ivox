@@ -24,9 +24,10 @@ class ListUserPage extends StatefulWidget {
 
 class _ListUserPageState extends State<ListUserPage> {
   final _chatService = ChatServices();
-  final GlobalKey _chatListKey = GlobalKey();
   final GlobalKey _firstUserKey = GlobalKey();
+  final TextEditingController _searchController = TextEditingController();
   bool _isDrawerOpened = false;
+  String _searchQuery = '';
   late Future<List<ChatUser>> _usersFuture;
   StreamSubscription<Map<String, dynamic>>? _appNotificationSubscription;
   int _pendingFriendRequests = 0;
@@ -69,6 +70,7 @@ class _ListUserPageState extends State<ListUserPage> {
   @override
   void dispose() {
     _appNotificationSubscription?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -437,16 +439,6 @@ class _ListUserPageState extends State<ListUserPage> {
       appBar: AppBar(
         title: Text("Chat"),
         centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {
-              AppWalkthroughController.instance.start();
-              widget.onTabSelected(0);
-            },
-            icon: const Icon(Icons.help_outline),
-            tooltip: 'Tutoriel',
-          ),
-        ],
       ),
       body: Stack(
         children: [
@@ -454,7 +446,7 @@ class _ListUserPageState extends State<ListUserPage> {
           MascotWalkthroughOverlay(
             page: WalkthroughPage.chat,
             targets: {
-              'chat_list': _chatListKey,
+              'chat_list': _firstUserKey,
               'chat_first_user': _firstUserKey,
             },
             onTabSelected: widget.onTabSelected,
@@ -475,14 +467,65 @@ class _ListUserPageState extends State<ListUserPage> {
           return const Center(child: CircularProgressIndicator());
         }
         final users = snapshot.data ?? <ChatUser>[];
+        final filteredUsers = users.where((user) {
+          final q = _searchQuery.trim().toLowerCase();
+          if (q.isEmpty) return true;
+          return user.username.toLowerCase().contains(q) ||
+              user.email.toLowerCase().contains(q);
+        }).toList();
+
         return RefreshIndicator(
           onRefresh: _refreshUsers,
           child: ListView(
-            key: _chatListKey,
             children: [
-              for (int i = 0; i < users.length; i++)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    if (!mounted) return;
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un utilisateur...',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: _searchQuery.isEmpty
+                        ? null
+                        : IconButton(
+                            onPressed: () {
+                              _searchController.clear();
+                              if (!mounted) return;
+                              setState(() {
+                                _searchQuery = '';
+                              });
+                            },
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 6, 22, 8),
+                child: Text(
+                  '${filteredUsers.length} utilisateur(s) visible(s)',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              if (filteredUsers.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                  child: Center(
+                    child: Text('Aucun utilisateur ne correspond a votre recherche.'),
+                  ),
+                ),
+              for (int i = 0; i < filteredUsers.length; i++)
                 _buildUserList(
-                  users[i],
+                  filteredUsers[i],
                   context,
                   tileKey: i == 0 ? _firstUserKey : null,
                 ),
@@ -501,6 +544,7 @@ class _ListUserPageState extends State<ListUserPage> {
     return UserTile(
       key: tileKey,
       text: userData.username,
+      subtitle: userData.status.toLowerCase() == 'online' ? 'En ligne' : 'Hors ligne',
       photoUrl: userData.photoUrl,
       onAddFriend: () => _sendFriendRequest(userData),
       onBlockUser: () => _blockUser(userData),
