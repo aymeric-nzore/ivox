@@ -21,15 +21,15 @@ class WalkthroughStep {
 class AppWalkthroughController extends ChangeNotifier {
   AppWalkthroughController._();
 
-  static final AppWalkthroughController instance =
-      AppWalkthroughController._();
+  static final AppWalkthroughController instance = AppWalkthroughController._();
 
   final List<WalkthroughStep> _steps = const [
     WalkthroughStep(
       page: WalkthroughPage.lessons,
       targetId: 'lessons_search',
       title: 'Bonjour, je suis Mylann',
-      description: 'Je vais te montrer les parties importantes de l\'application.',
+      description:
+          'Je vais te montrer les parties importantes de l\'application.',
       mascotAsset: 'assets/mascotte/im6.png',
     ),
     WalkthroughStep(
@@ -106,7 +106,8 @@ class AppWalkthroughController extends ChangeNotifier {
       page: WalkthroughPage.shop,
       targetId: 'shop_songs',
       title: 'Rayon musiques',
-      description: 'Commence par cette section pour acheter puis jouer tes sons.',
+      description:
+          'Commence par cette section pour acheter puis jouer tes sons.',
       mascotAsset: 'assets/mascotte/im5.png',
     ),
   ];
@@ -163,11 +164,11 @@ class AppWalkthroughController extends ChangeNotifier {
       case WalkthroughPage.leaderboard:
         return 1;
       case WalkthroughPage.chat:
-        return 2;
+        return 3;
       case WalkthroughPage.profile:
-        return 3;
+        return 4;
       case WalkthroughPage.shop:
-        return 3;
+        return 4;
     }
   }
 }

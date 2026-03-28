@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ivox/features/chat/presentation/list_user_page.dart';
 import 'package:ivox/features/leaderboard/leaderboard_page.dart';
 import 'package:ivox/features/lessons/presentation/lessons_page.dart';
+import 'package:ivox/features/mylann/presentation/mylann_chat_page.dart';
 import 'package:ivox/features/profile/presentation/profile_page.dart';
 import 'package:ivox/shared/walkthrough/app_walkthrough_controller.dart';
 import 'package:ivox/shared/walkthrough/tutorial_launch_service.dart';
@@ -9,10 +10,7 @@ import 'package:ivox/shared/walkthrough/tutorial_launch_service.dart';
 class MainPage extends StatefulWidget {
   final bool startTutorial;
 
-  const MainPage({
-    super.key,
-    this.startTutorial = false,
-  });
+  const MainPage({super.key, this.startTutorial = false});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -55,11 +53,16 @@ class _MainPageState extends State<MainPage> {
           onTabSelected: _handleTabSelected,
         );
       case 2:
-        return ListUserPage(
+        return MylannChatPage(
           currentIndex: _currentIndex,
           onTabSelected: _handleTabSelected,
         );
       case 3:
+        return ListUserPage(
+          currentIndex: _currentIndex,
+          onTabSelected: _handleTabSelected,
+        );
+      case 4:
         return ProfilePage(
           currentIndex: _currentIndex,
           onTabSelected: _handleTabSelected,
