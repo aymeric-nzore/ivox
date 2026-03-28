@@ -53,8 +53,9 @@ class NotificationService {
     await _ensureFirebaseReady();
 
     // Android initialization
-    const androidInitSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidInitSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
 
     // iOS initialization
     const iosInitSettings = DarwinInitializationSettings(
@@ -75,31 +76,31 @@ class NotificationService {
     // Request iOS permissions
     await _notifications
         .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
+          IOSFlutterLocalNotificationsPlugin
+        >()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
 
     // Request Android 13+ notification permission when available.
     await _notifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.requestNotificationsPermission();
 
     // Ensure the same channel exists for FCM background/system notifications.
     await _notifications
-      .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(_androidChannel);
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(_androidChannel);
 
     // Keep iOS heads-up presentation enabled when app is foreground.
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
 
     // Listen immediately; socket events will arrive once connected.
     _listenToSocketNotifications();
@@ -127,8 +128,9 @@ class NotificationService {
       return; // Already listening
     }
 
-    _notificationSubscription =
-        _chatService.appNotifications.listen((notification) {
+    _notificationSubscription = _chatService.appNotifications.listen((
+      notification,
+    ) {
       _handleSocketNotification(notification);
     });
   }
@@ -139,44 +141,55 @@ class NotificationService {
 
     switch (type) {
       case 'friend_request':
-        final fromUsername =
-            (notification['fromUsername'] ?? 'Quelqu\'un').toString();
+        final fromUsername = (notification['fromUsername'] ?? 'Quelqu\'un')
+            .toString();
         _showNotificationDedup(
-          dedupKey: 'friend_request:${notification['fromUserId'] ?? fromUsername}',
+          dedupKey:
+              'friend_request:${notification['fromUserId'] ?? fromUsername}',
           title: 'Nouvelle demande d\'ami',
           body: '$fromUsername a envoyé une demande d\'ami',
         );
         break;
 
       case 'friend_request_response':
-        final fromUsername =
-            (notification['fromUsername'] ?? 'Utilisateur').toString();
+        final fromUsername = (notification['fromUsername'] ?? 'Utilisateur')
+            .toString();
         final action = (notification['action'] ?? '').toString();
         final accepted = action == 'accept';
         _showNotificationDedup(
-          dedupKey: 'friend_response:${notification['fromUserId'] ?? fromUsername}:$action',
-          title: accepted
-              ? '✓ Demande acceptée'
-              : '✗ Demande refusée',
-          body: '$fromUsername a ${accepted ? 'accepté' : 'refusé'} votre demande d\'ami',
+          dedupKey:
+              'friend_response:${notification['fromUserId'] ?? fromUsername}:$action',
+          title: accepted ? '✓ Demande acceptée' : '✗ Demande refusée',
+          body:
+              '$fromUsername a ${accepted ? 'accepté' : 'refusé'} votre demande d\'ami',
         );
         break;
 
       case 'chat_message':
-        final preview =
-            (notification['preview'] ?? 'Nouveau message').toString();
+        final preview = (notification['preview'] ?? 'Nouveau message')
+            .toString();
+        final fromUsername = (notification['fromUsername'] ?? '').toString();
+        final title = fromUsername.isNotEmpty
+            ? 'Nouveau message de $fromUsername'
+            : 'Nouveau message';
         _showNotificationDedup(
           dedupKey: 'chat_message:${notification['messageId'] ?? preview}',
-          title: 'Nouveau message',
+          title: title,
           body: preview,
         );
         break;
 
       case 'shop_item_created':
         final title = (notification['title'] ?? 'Nouveau son').toString();
+        final itemType = (notification['itemType'] ?? '').toString();
+        final notifTitle = switch (itemType) {
+          'animation' => 'Nouvelle animation disponible',
+          'avatar' => 'Nouvel avatar disponible',
+          _ => 'Nouvelle musique disponible',
+        };
         _showNotificationDedup(
           dedupKey: 'shop_item_created:$title',
-          title: 'Nouvelle musique disponible',
+          title: notifTitle,
           body: title,
         );
         break;
@@ -201,6 +214,7 @@ class NotificationService {
       priority: Priority.high,
       playSound: true,
       enableVibration: true,
+      icon: 'ic_launcher',
     );
 
     const iosDetails = DarwinNotificationDetails(
@@ -224,15 +238,26 @@ class NotificationService {
 
   void _listenToForegroundFcmNotifications() {
     try {
-      _fcmForegroundSubscription ??= FirebaseMessaging.onMessage.listen((message) {
+      _fcmForegroundSubscription ??= FirebaseMessaging.onMessage.listen((
+        message,
+      ) {
         final data = message.data;
         final type = (data['type'] ?? '').toString();
         final messageId = (data['messageId'] ?? '').toString();
+        final fromUsername = (data['fromUsername'] ?? '').toString();
 
-        final title = message.notification?.title ??
-            (type == 'chat_message' ? 'Nouveau message' : 'Nouvelle notification');
-        final body = message.notification?.body ??
-            (data['preview'] ?? data['message'] ?? 'Vous avez une nouvelle notification')
+        final title =
+            message.notification?.title ??
+            (type == 'chat_message'
+                ? (fromUsername.isNotEmpty
+                      ? 'Nouveau message de $fromUsername'
+                      : 'Nouveau message')
+                : 'Nouvelle notification');
+        final body =
+            message.notification?.body ??
+            (data['preview'] ??
+                    data['message'] ??
+                    'Vous avez une nouvelle notification')
                 .toString();
 
         _showNotificationDedup(
@@ -271,7 +296,3 @@ class NotificationService {
     _socketRetryTimer?.cancel();
   }
 }
-
-
-
-

@@ -57,7 +57,8 @@ class ChatMessage {
       receiver: (json['receiver'] ?? '').toString(),
       message: (json['message'] ?? '').toString(),
       status: (json['status'] ?? 'sent').toString(),
-      createdAt: DateTime.tryParse((json['createdAt'] ?? '').toString()) ??
+      createdAt:
+          DateTime.tryParse((json['createdAt'] ?? '').toString()) ??
           DateTime.now(),
     );
   }
@@ -136,8 +137,14 @@ class ChatServices {
       _socket!.emit('user_join', {'userId': _currentUserId});
     });
 
-    _socket!.on('message_new', (data) => _pushMessage(ChatMessage.fromJson(_toMap(data))));
-    _socket!.on('message_sent', (data) => _pushMessage(ChatMessage.fromJson(_toMap(data))));
+    _socket!.on(
+      'message_new',
+      (data) => _pushMessage(ChatMessage.fromJson(_toMap(data))),
+    );
+    _socket!.on(
+      'message_sent',
+      (data) => _pushMessage(ChatMessage.fromJson(_toMap(data))),
+    );
     _socket!.on('message_read', (data) {
       final payload = _toMap(data);
       final targetId = (payload['messageId'] ?? '').toString();
@@ -167,7 +174,9 @@ class ChatServices {
       final payload = _toMap(data);
       final userId = (payload['userId'] ?? '').toString();
       final status = (payload['status'] ?? 'offline').toString();
-      final lastSeen = DateTime.tryParse((payload['lastSeen'] ?? '').toString());
+      final lastSeen = DateTime.tryParse(
+        (payload['lastSeen'] ?? '').toString(),
+      );
       if (userId.isEmpty) return;
       _userStatus[userId] = status;
       if (lastSeen != null) {
@@ -200,13 +209,12 @@ class ChatServices {
       final payload = _toMap(data);
       final item = _toMap(payload['item']);
       final itemType = (item['itemType'] ?? '').toString();
-      if (itemType == 'song') {
-        _appNotificationsController.add({
-          'type': 'shop_item_created',
-          'title': (item['title'] ?? 'Nouveau son').toString(),
-          'categorie': (item['categorie'] ?? '').toString(),
-        });
-      }
+      _appNotificationsController.add({
+        'type': 'shop_item_created',
+        'itemType': itemType,
+        'title': (item['title'] ?? 'Nouveau contenu').toString(),
+        'categorie': (item['categorie'] ?? '').toString(),
+      });
     });
 
     _socket!.connect();
@@ -313,7 +321,10 @@ class ChatServices {
     return _toMap(response.data);
   }
 
-  Future<void> respondFriendRequest(String requesterId, {required bool accept}) async {
+  Future<void> respondFriendRequest(
+    String requesterId, {
+    required bool accept,
+  }) async {
     await _initSocket();
     await _apiService.dio.post(
       '/users/friends/request/$requesterId/respond',
@@ -361,7 +372,9 @@ class ChatServices {
   Stream<String> userStatusStream(String userId) async* {
     await _initSocket();
     yield getUserStatus(userId);
-    yield* _presenceController.stream.map((state) => state[userId] ?? 'offline');
+    yield* _presenceController.stream.map(
+      (state) => state[userId] ?? 'offline',
+    );
   }
 
   Stream<DateTime?> userLastSeenStream(String userId) async* {
@@ -377,7 +390,9 @@ class ChatServices {
   }
 
   void _pushMessage(ChatMessage message) {
-    final peerId = message.sender == _currentUserId ? message.receiver : message.sender;
+    final peerId = message.sender == _currentUserId
+        ? message.receiver
+        : message.sender;
     final list = _messages.putIfAbsent(peerId, () => []);
 
     final existing = list.indexWhere((m) => m.messageId == message.messageId);

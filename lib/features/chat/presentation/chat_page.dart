@@ -36,6 +36,7 @@ class _ChatPageState extends State<ChatPage> {
   String? _currentUserId;
   String? _error;
   bool _typingSent = false;
+  bool _isSending = false;
 
   @override
   void initState() {
@@ -52,7 +53,9 @@ class _ChatPageState extends State<ChatPage> {
 
     final now = DateTime.now();
     final isToday =
-        now.year == dateTime.year && now.month == dateTime.month && now.day == dateTime.day;
+        now.year == dateTime.year &&
+        now.month == dateTime.month &&
+        now.day == dateTime.day;
 
     final hh = dateTime.hour.toString().padLeft(2, '0');
     final mm = dateTime.minute.toString().padLeft(2, '0');
@@ -85,7 +88,13 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || _isSending) return;
+
+    if (mounted) {
+      setState(() {
+        _isSending = true;
+      });
+    }
 
     try {
       await _chatService.sendTypingStop(widget.receiverID);
@@ -102,6 +111,12 @@ class _ChatPageState extends State<ChatPage> {
       if (mounted) {
         setState(() {
           _error = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSending = false;
         });
       }
     }
@@ -138,11 +153,13 @@ class _ChatPageState extends State<ChatPage> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundImage: widget.receiverPhotoUrl != null &&
+              backgroundImage:
+                  widget.receiverPhotoUrl != null &&
                       widget.receiverPhotoUrl!.isNotEmpty
                   ? NetworkImage(widget.receiverPhotoUrl!)
                   : null,
-              child: widget.receiverPhotoUrl == null ||
+              child:
+                  widget.receiverPhotoUrl == null ||
                       widget.receiverPhotoUrl!.isEmpty
                   ? const Icon(Icons.person, size: 18)
                   : null,
@@ -245,14 +262,14 @@ class _ChatPageState extends State<ChatPage> {
     final isCurrentUser = message.sender == _currentUserId;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bubbleColor = isCurrentUser
-      ? (isDark ? const Color(0xFFE3B341) : Colors.amber)
-      : (isDark ? const Color(0xFF2B3138) : Colors.grey.shade300);
+        ? (isDark ? const Color(0xFFE3B341) : Colors.amber)
+        : (isDark ? const Color(0xFF2B3138) : Colors.grey.shade300);
     final messageTextColor = isCurrentUser
-      ? Colors.black87
-      : (isDark ? Colors.white : Colors.black87);
+        ? Colors.black87
+        : (isDark ? Colors.white : Colors.black87);
     final timeTextColor = isCurrentUser
-      ? Colors.black54
-      : (isDark ? Colors.white70 : Colors.grey.shade700);
+        ? Colors.black54
+        : (isDark ? Colors.white70 : Colors.grey.shade700);
     final time =
         '${message.createdAt.hour.toString().padLeft(2, '0')}:${message.createdAt.minute.toString().padLeft(2, '0')}';
 
@@ -299,8 +316,7 @@ class _ChatPageState extends State<ChatPage> {
                   color: timeTextColor,
                 ),
               ),
-              if (isCurrentUser)
-                _buildStatusIndicator(message.status),
+              if (isCurrentUser) _buildStatusIndicator(message.status),
             ],
           ),
         ),
@@ -309,50 +325,70 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _showMessageActions(ChatMessage message) async {
-    if (_currentUserId != null && message.sender == _currentUserId) {
-      return;
-    }
-
-    final shouldReport = await showModalBottomSheet<bool>(
+    final isMine = _currentUserId != null && message.sender == _currentUserId;
+    final action = await showModalBottomSheet<String>(
       context: context,
       builder: (context) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.red.shade600,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 48),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.copy_rounded),
+                title: const Text('Copier le message'),
+                onTap: () {
+                  Navigator.of(context).pop('copy');
+                },
               ),
-              onPressed: () {
-                HapticFeedback.mediumImpact();
-                Navigator.pop(context, true);
-              },
-              icon: const Icon(Icons.report),
-              label: const Text('Signaler ce message'),
-            ),
+              if (!isMine)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.red.shade600,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                    onPressed: () {
+                      HapticFeedback.mediumImpact();
+                      Navigator.of(context).pop('report');
+                    },
+                    icon: const Icon(Icons.report),
+                    label: const Text('Signaler ce message'),
+                  ),
+                ),
+            ],
           ),
         );
       },
     );
 
-    if (shouldReport != true) {
+    if (action == 'copy') {
+      await Clipboard.setData(ClipboardData(text: message.message));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Message copie')));
+      }
+      return;
+    }
+
+    if (action != 'report') {
       return;
     }
 
     try {
       await _chatService.reportMessage(message.messageId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Message signale')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Message signale')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur signalement: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur signalement: $e')));
       }
     }
   }
@@ -390,17 +426,30 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildInput() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
-      child: Row(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Expanded(
               child: TextField(
                 controller: _messageController,
                 focusNode: _focusNode,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _sendMessage(),
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                minLines: 1,
+                maxLines: 4,
+                textAlignVertical: TextAlignVertical.center,
                 onChanged: (value) {
                   final hasText = value.trim().isNotEmpty;
                   if (hasText && !_typingSent) {
@@ -413,24 +462,24 @@ class _ChatPageState extends State<ChatPage> {
                 },
                 decoration: const InputDecoration(
                   hintText: 'Envoyez un message...',
-                  border: OutlineInputBorder(),
-                  filled: true,
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 10),
                 ),
               ),
             ),
-          ),
-          Container(
-            margin: const EdgeInsets.only(right: 10),
-            decoration: BoxDecoration(
-              color: Colors.amber,
-              borderRadius: BorderRadius.circular(8),
+            const SizedBox(width: 10),
+            IconButton.filled(
+              onPressed: _isSending ? null : _sendMessage,
+              icon: _isSending
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.send_rounded),
             ),
-            child: IconButton(
-              onPressed: _sendMessage,
-              icon: const Icon(Icons.send),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

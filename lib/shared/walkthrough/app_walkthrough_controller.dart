@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-enum WalkthroughPage { lessons, leaderboard, chat, profile, shop }
+enum WalkthroughPage { lessons, leaderboard, mylann, chat, profile, shop }
 
 class WalkthroughStep {
   final WalkthroughPage page;
@@ -54,6 +54,13 @@ class AppWalkthroughController extends ChangeNotifier {
       mascotAsset: 'assets/mascotte/im4.png',
     ),
     WalkthroughStep(
+      page: WalkthroughPage.mylann,
+      targetId: 'mylann_intro',
+      title: 'Assistant IA Mylann',
+      description: 'Pose une question a l\'IA pour t\'entrainer rapidement.',
+      mascotAsset: 'assets/mascotte/im6.png',
+    ),
+    WalkthroughStep(
       page: WalkthroughPage.chat,
       targetId: 'chat_list',
       title: 'Liste des contacts',
@@ -104,10 +111,31 @@ class AppWalkthroughController extends ChangeNotifier {
     ),
     WalkthroughStep(
       page: WalkthroughPage.shop,
+      targetId: 'shop_coins',
+      title: 'Ton solde',
+      description: 'Surveille tes pieces pour savoir ce que tu peux acheter.',
+      mascotAsset: 'assets/mascotte/im5.png',
+    ),
+    WalkthroughStep(
+      page: WalkthroughPage.shop,
       targetId: 'shop_songs',
       title: 'Rayon musiques',
       description:
           'Commence par cette section pour acheter puis jouer tes sons.',
+      mascotAsset: 'assets/mascotte/im5.png',
+    ),
+    WalkthroughStep(
+      page: WalkthroughPage.shop,
+      targetId: 'shop_animations',
+      title: 'Rayon animations',
+      description: 'Ici, tu achetes et equipes tes animations de splash.',
+      mascotAsset: 'assets/mascotte/im5.png',
+    ),
+    WalkthroughStep(
+      page: WalkthroughPage.shop,
+      targetId: 'shop_avatars',
+      title: 'Rayon avatars',
+      description: 'Choisis un avatar pour personnaliser ton profil.',
       mascotAsset: 'assets/mascotte/im5.png',
     ),
   ];
@@ -163,6 +191,8 @@ class AppWalkthroughController extends ChangeNotifier {
         return 0;
       case WalkthroughPage.leaderboard:
         return 1;
+      case WalkthroughPage.mylann:
+        return 2;
       case WalkthroughPage.chat:
         return 3;
       case WalkthroughPage.profile:

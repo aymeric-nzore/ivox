@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ivox/core/services/api_service.dart';
 import 'package:ivox/features/auth/services/auth_service.dart';
 import 'package:ivox/features/shop/services/animation_service.dart'
-  as anim_service;
+    as anim_service;
 import 'package:ivox/features/shop/services/shop_services.dart';
 import 'package:ivox/features/shop/services/song_player_service.dart';
 import 'package:ivox/shared/walkthrough/app_walkthrough_controller.dart';
@@ -30,7 +30,10 @@ class _ShopPageState extends State<ShopPage> {
   final Set<String> _buyingItemIds = <String>{};
   final Set<String> _equippingAnimationIds = <String>{};
   final GlobalKey _introCardKey = GlobalKey();
+  final GlobalKey _coinsKey = GlobalKey();
   final GlobalKey _songsSectionKey = GlobalKey();
+  final GlobalKey _animationsSectionKey = GlobalKey();
+  final GlobalKey _avatarsSectionKey = GlobalKey();
   final ScrollController _scrollController = ScrollController();
   String? _activeAnimationId;
 
@@ -55,8 +58,17 @@ class _ShopPageState extends State<ShopPage> {
       case 'shop_intro':
         targetKey = _introCardKey;
         break;
+      case 'shop_coins':
+        targetKey = _coinsKey;
+        break;
       case 'shop_songs':
         targetKey = _songsSectionKey;
+        break;
+      case 'shop_animations':
+        targetKey = _animationsSectionKey;
+        break;
+      case 'shop_avatars':
+        targetKey = _avatarsSectionKey;
         break;
     }
 
@@ -146,16 +158,17 @@ class _ShopPageState extends State<ShopPage> {
       item["buyCount"] = currentBuyCount + 1;
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Achat reussi")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Achat reussi")));
       await _authService.refreshProfile();
       if (mounted) {
         setState(() {});
       }
     } catch (error) {
       final message = error.toString();
-      final alreadyBought = message.toLowerCase().contains("deja") ||
+      final alreadyBought =
+          message.toLowerCase().contains("deja") ||
           message.toLowerCase().contains("déjà");
 
       if (alreadyBought && type == "song") {
@@ -224,9 +237,9 @@ class _ShopPageState extends State<ShopPage> {
         _activeAnimationId = isCurrentlyActive ? null : animationId;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
       await _authService.refreshProfile();
       if (mounted) {
         setState(() {});
@@ -286,7 +299,10 @@ class _ShopPageState extends State<ShopPage> {
                     children: [
                       IconButton(
                         onPressed: () => Navigator.of(dialogContext).pop(),
-                        icon: const Icon(Icons.close_rounded, color: Colors.white),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -359,8 +375,9 @@ class _ShopPageState extends State<ShopPage> {
       return true;
     }
 
-    return RegExp(r'\.(png|jpe?g|webp|gif|bmp|heic|heif)(\?|$)')
-        .hasMatch(normalized);
+    return RegExp(
+      r'\.(png|jpe?g|webp|gif|bmp|heic|heif)(\?|$)',
+    ).hasMatch(normalized);
   }
 
   Widget _buildSection(
@@ -374,8 +391,8 @@ class _ShopPageState extends State<ShopPage> {
     final cardWidth = screenWidth < 360
         ? 190.0
         : screenWidth < 500
-            ? 220.0
-            : 250.0;
+        ? 220.0
+        : 250.0;
     final sectionHeight = screenWidth < 360 ? 300.0 : 320.0;
 
     return Column(
@@ -387,10 +404,7 @@ class _ShopPageState extends State<ShopPage> {
             const SizedBox(width: 8),
             Text(
               _labelForType(type),
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const Spacer(),
             Text(
@@ -418,7 +432,8 @@ class _ShopPageState extends State<ShopPage> {
               : ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: items.length,
-                  separatorBuilder: (context, index) => const SizedBox(width: 12),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 12),
                   itemBuilder: (context, index) {
                     final item = items[index];
                     final title = (item["title"] ?? "Item").toString();
@@ -432,25 +447,30 @@ class _ShopPageState extends State<ShopPage> {
                     final itemId = (item["_id"] ?? "").toString();
                     final buyCount = _toInt(item["buyCount"]);
                     final isSong = type == "song";
-                    final isOwnedSong = isSong && _ownedSongIds.contains(itemId);
+                    final isOwnedSong =
+                        isSong && _ownedSongIds.contains(itemId);
                     final isOwnedAnimation =
-                      isAnimation && _ownedAnimationIds.contains(itemId);
+                        isAnimation && _ownedAnimationIds.contains(itemId);
                     final isAnimationActive =
-                      isAnimation && _activeAnimationId == itemId;
+                        isAnimation && _activeAnimationId == itemId;
                     final isBuying = _buyingItemIds.contains(itemId);
                     final isEquipping =
-                      isAnimation && _equippingAnimationIds.contains(itemId);
+                        isAnimation && _equippingAnimationIds.contains(itemId);
                     final isSmallCard = cardWidth < 210;
                     final isPlaying =
-                      _songPlayerService.currentItemId == itemId &&
-                      _songPlayerService.isPlaying;
+                        _songPlayerService.currentItemId == itemId &&
+                        _songPlayerService.isPlaying;
 
                     return Container(
                       width: cardWidth,
                       decoration: BoxDecoration(
                         color: colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.4,
+                          ),
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.06),
@@ -481,35 +501,39 @@ class _ShopPageState extends State<ShopPage> {
                                     child: Image.network(
                                       imageUrl,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) => Center(
-                                        child: Icon(
-                                          icon,
-                                          size: 34,
-                                          color: colorScheme.primary,
-                                        ),
-                                      ),
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Center(
+                                                child: Icon(
+                                                  icon,
+                                                  size: 34,
+                                                  color: colorScheme.primary,
+                                                ),
+                                              ),
                                     ),
                                   )
                                 : isAnimation
-                                    ? ClipRRect(
-                                        borderRadius: const BorderRadius.vertical(
-                                          top: Radius.circular(16),
-                                          bottom: Radius.circular(12),
-                                        ),
-                                        child: Lottie.network(
-                                          imageUrl,
-                                          fit: BoxFit.contain,
-                                          repeat: false,
-                                          frameRate: FrameRate.composition,
-                                          errorBuilder: (context, error, stackTrace) => Center(
-                                            child: Icon(
-                                              icon,
-                                              size: 34,
-                                              color: colorScheme.primary,
-                                            ),
-                                          ),
-                                        ),
-                                      )
+                                ? ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(16),
+                                      bottom: Radius.circular(12),
+                                    ),
+                                    child: Lottie.network(
+                                      imageUrl,
+                                      fit: BoxFit.contain,
+                                      repeat: false,
+                                      frameRate: FrameRate.composition,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Center(
+                                                child: Icon(
+                                                  icon,
+                                                  size: 34,
+                                                  color: colorScheme.primary,
+                                                ),
+                                              ),
+                                    ),
+                                  )
                                 : Center(
                                     child: Icon(
                                       icon,
@@ -520,7 +544,12 @@ class _ShopPageState extends State<ShopPage> {
                           ),
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                              padding: const EdgeInsets.fromLTRB(
+                                12,
+                                10,
+                                12,
+                                12,
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -562,14 +591,23 @@ class _ShopPageState extends State<ShopPage> {
                                   Row(
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 5,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFFFF7CC),
-                                          borderRadius: BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                         ),
                                         child: Row(
                                           children: [
-                                            const Icon(Icons.monetization_on_rounded, size: 14, color: Color(0xFFA46A00)),
+                                            const Icon(
+                                              Icons.monetization_on_rounded,
+                                              size: 14,
+                                              color: Color(0xFFA46A00),
+                                            ),
                                             const SizedBox(width: 4),
                                             Text(
                                               "$price",
@@ -582,7 +620,11 @@ class _ShopPageState extends State<ShopPage> {
                                         ),
                                       ),
                                       const Spacer(),
-                                      Icon(Icons.shopping_bag_outlined, size: 15, color: colorScheme.onSurfaceVariant),
+                                      Icon(
+                                        Icons.shopping_bag_outlined,
+                                        size: 15,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
                                       const SizedBox(width: 4),
                                       Text(
                                         "$buyCount",
@@ -599,96 +641,143 @@ class _ShopPageState extends State<ShopPage> {
                                     width: double.infinity,
                                     child: isOwnedSong
                                         ? OutlinedButton.icon(
-                                            onPressed: () => _toggleSongPlayback(
-                                              itemId: itemId,
-                                              title: title,
-                                              assetUrl: imageUrl,
-                                            ),
+                                            onPressed: () =>
+                                                _toggleSongPlayback(
+                                                  itemId: itemId,
+                                                  title: title,
+                                                  assetUrl: imageUrl,
+                                                ),
                                             icon: Icon(
                                               isPlaying
-                                                  ? Icons.pause_circle_filled_rounded
-                                                  : Icons.play_circle_fill_rounded,
+                                                  ? Icons
+                                                        .pause_circle_filled_rounded
+                                                  : Icons
+                                                        .play_circle_fill_rounded,
                                             ),
-                                            label: Text(isPlaying ? "Pause" : "Jouer"),
+                                            label: Text(
+                                              isPlaying ? "Pause" : "Jouer",
+                                            ),
                                           )
                                         : isAnimation
-                                            ? Column(
-                                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                                children: [
-                                                  SizedBox(
-                                                    height: 34,
-                                                    child: OutlinedButton.icon(
-                                                      onPressed: () => _showAnimationPreview(
+                                        ? Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            children: [
+                                              SizedBox(
+                                                height: 34,
+                                                child: OutlinedButton.icon(
+                                                  onPressed: () =>
+                                                      _showAnimationPreview(
                                                         title: title,
                                                         assetUrl: imageUrl,
                                                       ),
-                                                      icon: const Icon(Icons.fullscreen_rounded, size: 14),
-                                                      label: Text(
-                                                        isSmallCard ? "Preview" : "Aperçu",
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow.ellipsis,
-                                                        style: const TextStyle(fontSize: 11),
-                                                      ),
-                                                      style: OutlinedButton.styleFrom(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                                                      ),
+                                                  icon: const Icon(
+                                                    Icons.fullscreen_rounded,
+                                                    size: 14,
+                                                  ),
+                                                  label: Text(
+                                                    isSmallCard
+                                                        ? "Preview"
+                                                        : "Aperçu",
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
                                                     ),
                                                   ),
-                                                  const SizedBox(height: 6),
-                                                  SizedBox(
-                                                    height: 34,
-                                                    child: isOwnedAnimation
-                                                        ? ElevatedButton.icon(
-                                                            onPressed: isEquipping
-                                                                ? null
-                                                                : () => _toggleAnimationEquip(
-                                                                      animationId: itemId,
-                                                                      isCurrentlyActive: isAnimationActive,
-                                                                    ),
-                                                            icon: Icon(
-                                                              isAnimationActive
-                                                                  ? Icons.link_off_rounded
-                                                                  : Icons.check_circle_rounded,
-                                                              size: 14,
-                                                            ),
-                                                            label: Text(
-                                                              isEquipping
-                                                                  ? "..."
-                                                                  : (isAnimationActive
-                                                                      ? "Déséquiper"
-                                                                      : "Équiper"),
-                                                              maxLines: 1,
-                                                              overflow: TextOverflow.ellipsis,
-                                                              style: const TextStyle(fontSize: 11),
-                                                            ),
-                                                            style: ElevatedButton.styleFrom(
-                                                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                                                            ),
-                                                          )
-                                                        : ElevatedButton.icon(
-                                                            onPressed: isBuying
-                                                                ? null
-                                                                : () => _buyItem(type, item),
-                                                            icon: const Icon(Icons.shopping_cart_checkout_rounded, size: 14),
-                                                            label: Text(
-                                                              isBuying ? "Achat..." : "Acheter",
-                                                              maxLines: 1,
-                                                              overflow: TextOverflow.ellipsis,
-                                                              style: const TextStyle(fontSize: 11),
-                                                            ),
-                                                            style: ElevatedButton.styleFrom(
-                                                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                                                            ),
-                                                          ),
+                                                  style: OutlinedButton.styleFrom(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                        ),
                                                   ),
-                                                ],
-                                              )
-                                            : ElevatedButton(
-                                                onPressed: isBuying
-                                                    ? null
-                                                    : () => _buyItem(type, item),
-                                                child: Text(isBuying ? "Achat..." : "Acheter"),
+                                                ),
                                               ),
+                                              const SizedBox(height: 6),
+                                              SizedBox(
+                                                height: 34,
+                                                child: isOwnedAnimation
+                                                    ? ElevatedButton.icon(
+                                                        onPressed: isEquipping
+                                                            ? null
+                                                            : () => _toggleAnimationEquip(
+                                                                animationId:
+                                                                    itemId,
+                                                                isCurrentlyActive:
+                                                                    isAnimationActive,
+                                                              ),
+                                                        icon: Icon(
+                                                          isAnimationActive
+                                                              ? Icons
+                                                                    .link_off_rounded
+                                                              : Icons
+                                                                    .check_circle_rounded,
+                                                          size: 14,
+                                                        ),
+                                                        label: Text(
+                                                          isEquipping
+                                                              ? "..."
+                                                              : (isAnimationActive
+                                                                    ? "Déséquiper"
+                                                                    : "Équiper"),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 11,
+                                                              ),
+                                                        ),
+                                                        style: ElevatedButton.styleFrom(
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 8,
+                                                              ),
+                                                        ),
+                                                      )
+                                                    : ElevatedButton.icon(
+                                                        onPressed: isBuying
+                                                            ? null
+                                                            : () => _buyItem(
+                                                                type,
+                                                                item,
+                                                              ),
+                                                        icon: const Icon(
+                                                          Icons
+                                                              .shopping_cart_checkout_rounded,
+                                                          size: 14,
+                                                        ),
+                                                        label: Text(
+                                                          isBuying
+                                                              ? "Achat..."
+                                                              : "Acheter",
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 11,
+                                                              ),
+                                                        ),
+                                                        style: ElevatedButton.styleFrom(
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 8,
+                                                              ),
+                                                        ),
+                                                      ),
+                                              ),
+                                            ],
+                                          )
+                                        : ElevatedButton(
+                                            onPressed: isBuying
+                                                ? null
+                                                : () => _buyItem(type, item),
+                                            child: Text(
+                                              isBuying ? "Achat..." : "Acheter",
+                                            ),
+                                          ),
                                   ),
                                 ],
                               ),
@@ -724,9 +813,7 @@ class _ShopPageState extends State<ShopPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const MusicShopPage(),
-                ),
+                MaterialPageRoute(builder: (context) => const MusicShopPage()),
               );
             },
           ),
@@ -751,7 +838,11 @@ class _ShopPageState extends State<ShopPage> {
               return Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  key: _coinsKey,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF7CC),
                     borderRadius: BorderRadius.circular(20),
@@ -790,23 +881,31 @@ class _ShopPageState extends State<ShopPage> {
               }
 
               if (snapshot.hasError) {
-                return const Center(child: Text("Erreur de chargement de la boutique"));
+                return const Center(
+                  child: Text("Erreur de chargement de la boutique"),
+                );
               }
 
-              final data = snapshot.data ?? const <String, List<Map<String, dynamic>>>{};
+              final data =
+                  snapshot.data ?? const <String, List<Map<String, dynamic>>>{};
 
               return RefreshIndicator(
                 onRefresh: _reloadShop,
                 child: ListView(
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
                   children: [
                     Container(
                       key: _introCardKey,
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Text(
@@ -817,12 +916,30 @@ class _ShopPageState extends State<ShopPage> {
                     const SizedBox(height: 16),
                     SizedBox(
                       key: _songsSectionKey,
-                      child: _buildSection(context, "song", data["song"] ?? const []),
+                      child: _buildSection(
+                        context,
+                        "song",
+                        data["song"] ?? const [],
+                      ),
                     ),
                     const SizedBox(height: 18),
-                    _buildSection(context, "animation", data["animation"] ?? const []),
+                    SizedBox(
+                      key: _animationsSectionKey,
+                      child: _buildSection(
+                        context,
+                        "animation",
+                        data["animation"] ?? const [],
+                      ),
+                    ),
                     const SizedBox(height: 18),
-                    _buildSection(context, "avatar", data["avatar"] ?? const []),
+                    SizedBox(
+                      key: _avatarsSectionKey,
+                      child: _buildSection(
+                        context,
+                        "avatar",
+                        data["avatar"] ?? const [],
+                      ),
+                    ),
                   ],
                 ),
               );
@@ -832,7 +949,10 @@ class _ShopPageState extends State<ShopPage> {
             page: WalkthroughPage.shop,
             targets: {
               'shop_intro': _introCardKey,
+              'shop_coins': _coinsKey,
               'shop_songs': _songsSectionKey,
+              'shop_animations': _animationsSectionKey,
+              'shop_avatars': _avatarsSectionKey,
             },
             onTabSelected: (_) {},
           ),

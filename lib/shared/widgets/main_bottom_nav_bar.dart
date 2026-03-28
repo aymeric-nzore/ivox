@@ -16,21 +16,22 @@ class MainBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final aiTop = isDark ? 2.0 : 10.0;
     final backgroundColor = isDark
-        ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.96)
+        ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.95)
         : colorScheme.surface;
 
     return SafeArea(
       child: SizedBox(
-        height: 110,
+        height: 94,
         child: Stack(
-          clipBehavior: Clip.none,
           alignment: Alignment.bottomCenter,
+          clipBehavior: Clip.none,
           children: [
             Positioned(
               left: 20,
               right: 20,
-              bottom: 20,
+              bottom: 12,
               child: CustomPaint(
                 painter: _NotchedNavPainter(
                   color: backgroundColor,
@@ -39,13 +40,13 @@ class MainBottomNavBar extends StatelessWidget {
                   ),
                 ),
                 child: SizedBox(
-                  height: 74,
+                  height: 64,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(30),
                     child: SalomonBottomBar(
                       margin: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 10,
+                        horizontal: 10,
+                        vertical: 8,
                       ),
                       duration: const Duration(milliseconds: 600),
                       currentIndex: currentIndex,
@@ -70,7 +71,7 @@ class MainBottomNavBar extends StatelessWidget {
                             width: 22,
                             height: 22,
                           ),
-                          title: const Text("Leaderboard"),
+                          title: const Text("Top"),
                           selectedColor: Colors.amber,
                         ),
                         SalomonBottomBarItem(
@@ -80,8 +81,8 @@ class MainBottomNavBar extends StatelessWidget {
                           selectedColor: Colors.transparent,
                         ),
                         SalomonBottomBarItem(
-                          icon: const Icon(Icons.forum_outlined),
-                          activeIcon: const Icon(Icons.forum),
+                          icon: const Icon(Icons.message_outlined),
+                          activeIcon: const Icon(Icons.message),
                           title: const Text("Chat"),
                           selectedColor: Colors.amber,
                         ),
@@ -98,13 +99,13 @@ class MainBottomNavBar extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: 0,
+              top: aiTop,
               child: GestureDetector(
                 onTap: () => onTap(2),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 220),
-                  width: 62,
-                  height: 62,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
@@ -117,11 +118,11 @@ class MainBottomNavBar extends StatelessWidget {
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFFF9A825).withValues(alpha: 0.45),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
                       ),
                     ],
-                    border: Border.all(color: colorScheme.surface, width: 3),
+                    border: Border.all(color: backgroundColor, width: 3),
                   ),
                   child: const Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -129,14 +130,14 @@ class MainBottomNavBar extends StatelessWidget {
                       Icon(
                         Icons.smart_toy_rounded,
                         color: Colors.white,
-                        size: 24,
+                        size: 20,
                       ),
                       SizedBox(height: 1),
                       Text(
                         'IA',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: 8,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.4,
                         ),
@@ -162,8 +163,7 @@ class _NotchedNavPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final path = Path();
-    const double radius = 28;
-    const double notchDepth = 20;
+    const double radius = 27;
     const double cornerRadius = 28;
     final double center = size.width / 2;
 
@@ -191,12 +191,7 @@ class _NotchedNavPainter extends CustomPainter {
     path.quadraticBezierTo(0, 0, cornerRadius, 0);
     path.close();
 
-    canvas.drawShadow(
-      path.shift(Offset(0, notchDepth / 2)),
-      shadowColor,
-      12,
-      false,
-    );
+    canvas.drawShadow(path, shadowColor, 12, false);
     canvas.drawPath(path, Paint()..color = color);
   }
 
