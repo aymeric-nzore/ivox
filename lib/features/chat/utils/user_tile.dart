@@ -6,7 +6,9 @@ class UserTile extends StatelessWidget {
   final String text;
   final String? subtitle;
   final String? photoUrl;
+  final int unreadCount;
   final VoidCallback onTap;
+  final VoidCallback? onVoiceCall;
   final VoidCallback? onAddFriend;
   final VoidCallback? onBlockUser;
   const UserTile({
@@ -14,7 +16,9 @@ class UserTile extends StatelessWidget {
     required this.text,
     this.subtitle,
     this.photoUrl,
+    this.unreadCount = 0,
     required this.onTap,
+    this.onVoiceCall,
     this.onAddFriend,
     this.onBlockUser,
   });
@@ -24,14 +28,14 @@ class UserTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final addFriendBg =
-        isDark ? const Color(0xFF1F3A5F) : const Color(0xFFE8F0FE);
-    final addFriendFg =
-        isDark ? const Color(0xFFD6E4FF) : const Color(0xFF0D47A1);
-    final blockBg =
-        isDark ? const Color(0xFF4A2426) : const Color(0xFFFFEBEE);
-    final blockFg =
-        isDark ? const Color(0xFFFFCDD2) : const Color(0xFFB71C1C);
+    final addFriendBg = isDark
+        ? const Color(0xFF1F3A5F)
+        : const Color(0xFFE8F0FE);
+    final addFriendFg = isDark
+        ? const Color(0xFFD6E4FF)
+        : const Color(0xFF0D47A1);
+    final blockBg = isDark ? const Color(0xFF4A2426) : const Color(0xFFFFEBEE);
+    final blockFg = isDark ? const Color(0xFFFFCDD2) : const Color(0xFFB71C1C);
 
     return GestureDetector(
       onTap: onTap,
@@ -69,7 +73,9 @@ class UserTile extends StatelessWidget {
                     Text(
                       subtitle!,
                       style: TextStyle(
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.75,
+                        ),
                         fontSize: 12,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -77,6 +83,31 @@ class UserTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (onVoiceCall != null)
+              IconButton(
+                tooltip: 'Appel vocal',
+                onPressed: onVoiceCall,
+                icon: Icon(Icons.call_rounded, color: colorScheme.primary),
+              ),
+            if (unreadCount > 0)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                margin: const EdgeInsets.only(right: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                constraints: const BoxConstraints(minWidth: 24),
+                child: Text(
+                  unreadCount > 99 ? '99+' : unreadCount.toString(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             IconButton(
               onPressed: () => showPopover(
                 height: 96,

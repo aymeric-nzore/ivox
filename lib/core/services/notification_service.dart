@@ -228,12 +228,37 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    await _notifications.show(
-      id: _notificationId,
-      title: title,
-      body: body,
-      notificationDetails: details,
-    );
+    try {
+      await _notifications.show(
+        id: _notificationId,
+        title: title,
+        body: body,
+        notificationDetails: details,
+      );
+    } catch (_) {
+      // Fallback when Android custom icon resource is not found/compatible.
+      const fallbackAndroidDetails = AndroidNotificationDetails(
+        channelId,
+        'IVOX Notifications',
+        channelDescription: 'Notifications pour demandes d\'ami, messages, etc',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+      );
+
+      final fallbackDetails = NotificationDetails(
+        android: fallbackAndroidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notifications.show(
+        id: _notificationId,
+        title: title,
+        body: body,
+        notificationDetails: fallbackDetails,
+      );
+    }
   }
 
   void _listenToForegroundFcmNotifications() {

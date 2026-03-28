@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:ivox/features/chat/presentation/chat_page.dart';
+import 'package:ivox/features/chat/presentation/voice_call_page.dart';
 import 'package:ivox/features/chat/services/chat_services.dart';
 import 'package:ivox/features/chat/utils/user_tile.dart';
 import 'package:ivox/shared/utils/my_drawer_tile.dart';
@@ -30,19 +31,26 @@ class _ListUserPageState extends State<ListUserPage> {
   String _searchQuery = '';
   late Future<List<ChatUser>> _usersFuture;
   StreamSubscription<Map<String, dynamic>>? _appNotificationSubscription;
+  StreamSubscription<Map<String, dynamic>>? _callSignalSubscription;
   int _pendingFriendRequests = 0;
+  Map<String, int> _unreadCounts = <String, int>{};
+  Map<String, ChatUser> _usersById = <String, ChatUser>{};
+  bool _isCallDialogOpen = false;
 
   @override
   void initState() {
     super.initState();
     _usersFuture = _chatService.getUsers();
     _syncFriendRequestBadge();
-    _appNotificationSubscription = _chatService.appNotifications.listen((notification) {
+    _refreshUnreadCounts();
+    _appNotificationSubscription = _chatService.appNotifications.listen((
+      notification,
+    ) {
       if (!mounted) return;
       final type = (notification['type'] ?? '').toString();
       if (type == 'friend_request') {
-        final fromUsername =
-            (notification['fromUsername'] ?? 'Quelqu\'un').toString();
+        final fromUsername = (notification['fromUsername'] ?? 'Quelqu\'un')
+            .toString();
         setState(() {
           _pendingFriendRequests += 1;
         });
@@ -50,8 +58,8 @@ class _ListUserPageState extends State<ListUserPage> {
           SnackBar(content: Text('Nouvelle demande d\'ami de $fromUsername')),
         );
       } else if (type == 'friend_request_response') {
-        final fromUsername =
-            (notification['fromUsername'] ?? 'Utilisateur').toString();
+        final fromUsername = (notification['fromUsername'] ?? 'Utilisateur')
+            .toString();
         final action = (notification['action'] ?? 'respond').toString();
         final accepted = action == 'accept';
         ScaffoldMessenger.of(context).showSnackBar(
@@ -63,15 +71,105 @@ class _ListUserPageState extends State<ListUserPage> {
             ),
           ),
         );
+      } else if (type == 'chat_message') {
+        final fromUserId = (notification['fromUserId'] ?? '').toString();
+        if (fromUserId.isEmpty) return;
+        setState(() {
+          _unreadCounts[fromUserId] = (_unreadCounts[fromUserId] ?? 0) + 1;
+        });
       }
+    });
+
+    _callSignalSubscription = _chatService.callEvents.listen((payload) {
+      final event = (payload['event'] ?? '').toString();
+      if (event != 'call_invite' || !mounted || _isCallDialogOpen) return;
+
+      final fromUserId = (payload['fromUserId'] ?? '').toString();
+      final callId = (payload['callId'] ?? '').toString();
+      if (fromUserId.isEmpty || callId.isEmpty) return;
+
+      _showIncomingCallDialog(
+        fromUserId: fromUserId,
+        callId: callId,
+        callerName: (payload['callerName'] ?? 'Utilisateur').toString(),
+      );
     });
   }
 
   @override
   void dispose() {
     _appNotificationSubscription?.cancel();
+    _callSignalSubscription?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showIncomingCallDialog({
+    required String fromUserId,
+    required String callId,
+    required String callerName,
+  }) async {
+    _isCallDialogOpen = true;
+
+    try {
+      final caller = _usersById[fromUserId];
+
+      final accepted = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Appel entrant'),
+            content: Text('Appel vocal de $callerName'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Refuser'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Accepter'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (!mounted) return;
+
+      if (accepted == true) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => VoiceCallPage(
+              receiverId: fromUserId,
+              receiverName: caller?.username ?? callerName,
+              receiverPhotoUrl: caller?.photoUrl,
+              isIncoming: true,
+              callId: callId,
+            ),
+          ),
+        );
+      } else {
+        await _chatService.sendCallReject(toUserId: fromUserId, callId: callId);
+      }
+    } finally {
+      _isCallDialogOpen = false;
+    }
+  }
+
+  Future<void> _startVoiceCall(ChatUser user) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VoiceCallPage(
+          receiverId: user.id,
+          receiverName: user.username,
+          receiverPhotoUrl: user.photoUrl,
+          isIncoming: false,
+        ),
+      ),
+    );
   }
 
   Future<void> _refreshUsers() async {
@@ -82,6 +180,19 @@ class _ListUserPageState extends State<ListUserPage> {
       });
     }
     await _syncFriendRequestBadge();
+    await _refreshUnreadCounts();
+  }
+
+  Future<void> _refreshUnreadCounts() async {
+    try {
+      final counts = await _chatService.getUnreadCounts();
+      if (!mounted) return;
+      setState(() {
+        _unreadCounts = counts;
+      });
+    } catch (_) {
+      // Ignore and keep previous unread counts.
+    }
   }
 
   Future<void> _syncFriendRequestBadge() async {
@@ -107,9 +218,9 @@ class _ListUserPageState extends State<ListUserPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur demande d\'ami: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur demande d\'ami: $e')));
       }
     }
   }
@@ -119,15 +230,15 @@ class _ListUserPageState extends State<ListUserPage> {
       await _chatService.blockUser(user.id);
       await _refreshUsers();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${user.username} bloque')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${user.username} bloque')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur blocage: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur blocage: $e')));
       }
     }
   }
@@ -135,15 +246,18 @@ class _ListUserPageState extends State<ListUserPage> {
   Future<void> _showFriendsAndRequests() async {
     try {
       final payload = await _chatService.getFriendRequests();
-      List<Map<String, dynamic>> received = (payload['received'] as List?)
+      List<Map<String, dynamic>> received =
+          (payload['received'] as List?)
               ?.map((e) => (e as Map).map((k, v) => MapEntry(k.toString(), v)))
               .toList() ??
           <Map<String, dynamic>>[];
-      List<Map<String, dynamic>> sent = (payload['sent'] as List?)
+      List<Map<String, dynamic>> sent =
+          (payload['sent'] as List?)
               ?.map((e) => (e as Map).map((k, v) => MapEntry(k.toString(), v)))
               .toList() ??
           <Map<String, dynamic>>[];
-      List<Map<String, dynamic>> friends = (payload['friends'] as List?)
+      List<Map<String, dynamic>> friends =
+          (payload['friends'] as List?)
               ?.map((e) => (e as Map).map((k, v) => MapEntry(k.toString(), v)))
               .toList() ??
           <Map<String, dynamic>>[];
@@ -171,24 +285,30 @@ class _ListUserPageState extends State<ListUserPage> {
                       accept: accept,
                     );
                     final refreshed = await _chatService.getFriendRequests();
-                    received = (refreshed['received'] as List?)
+                    received =
+                        (refreshed['received'] as List?)
                             ?.map(
-                              (e) =>
-                                  (e as Map).map((k, v) => MapEntry(k.toString(), v)),
+                              (e) => (e as Map).map(
+                                (k, v) => MapEntry(k.toString(), v),
+                              ),
                             )
                             .toList() ??
                         <Map<String, dynamic>>[];
-                    sent = (refreshed['sent'] as List?)
+                    sent =
+                        (refreshed['sent'] as List?)
                             ?.map(
-                              (e) =>
-                                  (e as Map).map((k, v) => MapEntry(k.toString(), v)),
+                              (e) => (e as Map).map(
+                                (k, v) => MapEntry(k.toString(), v),
+                              ),
                             )
                             .toList() ??
                         <Map<String, dynamic>>[];
-                    friends = (refreshed['friends'] as List?)
+                    friends =
+                        (refreshed['friends'] as List?)
                             ?.map(
-                              (e) =>
-                                  (e as Map).map((k, v) => MapEntry(k.toString(), v)),
+                              (e) => (e as Map).map(
+                                (k, v) => MapEntry(k.toString(), v),
+                              ),
                             )
                             .toList() ??
                         <Map<String, dynamic>>[];
@@ -227,19 +347,24 @@ class _ListUserPageState extends State<ListUserPage> {
                           child: TabBarView(
                             children: [
                               friends.isEmpty
-                                  ? const Center(child: Text('Aucun ami pour le moment'))
+                                  ? const Center(
+                                      child: Text('Aucun ami pour le moment'),
+                                    )
                                   : ListView.builder(
                                       itemCount: friends.length,
                                       itemBuilder: (context, index) {
                                         final item = friends[index];
                                         return ListTile(
                                           leading: buildAvatar(item),
-                                          title: Text((item['username'] ?? 'Utilisateur').toString()),
+                                          title: Text(
+                                            (item['username'] ?? 'Utilisateur')
+                                                .toString(),
+                                          ),
                                           subtitle: Text(
                                             ((item['status'] ?? 'offline')
-                                                    .toString()
-                                                    .toLowerCase() ==
-                                                'online')
+                                                        .toString()
+                                                        .toLowerCase() ==
+                                                    'online')
                                                 ? 'En ligne'
                                                 : 'Hors ligne',
                                           ),
@@ -254,11 +379,17 @@ class _ListUserPageState extends State<ListUserPage> {
                                       itemCount: received.length,
                                       itemBuilder: (context, index) {
                                         final item = received[index];
-                                        final requesterId = (item['id'] ?? '').toString();
+                                        final requesterId = (item['id'] ?? '')
+                                            .toString();
                                         return ListTile(
                                           leading: buildAvatar(item),
-                                          title: Text((item['username'] ?? 'Utilisateur').toString()),
-                                          subtitle: Text((item['email'] ?? '').toString()),
+                                          title: Text(
+                                            (item['username'] ?? 'Utilisateur')
+                                                .toString(),
+                                          ),
+                                          subtitle: Text(
+                                            (item['email'] ?? '').toString(),
+                                          ),
                                           trailing: Wrap(
                                             spacing: 4,
                                             children: [
@@ -299,8 +430,13 @@ class _ListUserPageState extends State<ListUserPage> {
                                         final item = sent[index];
                                         return ListTile(
                                           leading: buildAvatar(item),
-                                          title: Text((item['username'] ?? 'Utilisateur').toString()),
-                                          subtitle: const Text('En attente de reponse'),
+                                          title: Text(
+                                            (item['username'] ?? 'Utilisateur')
+                                                .toString(),
+                                          ),
+                                          subtitle: const Text(
+                                            'En attente de reponse',
+                                          ),
                                         );
                                       },
                                     ),
@@ -352,8 +488,8 @@ class _ListUserPageState extends State<ListUserPage> {
                       leading: CircleAvatar(
                         backgroundImage:
                             user.photoUrl != null && user.photoUrl!.isNotEmpty
-                                ? NetworkImage(user.photoUrl!)
-                                : null,
+                            ? NetworkImage(user.photoUrl!)
+                            : null,
                         child: user.photoUrl == null || user.photoUrl!.isEmpty
                             ? const Icon(Icons.person)
                             : null,
@@ -436,10 +572,7 @@ class _ListUserPageState extends State<ListUserPage> {
               onTap: widget.onTabSelected,
             )
           : null,
-      appBar: AppBar(
-        title: Text("Chat"),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text("Chat"), centerTitle: true),
       body: Stack(
         children: [
           _buildUsersList(context),
@@ -467,6 +600,7 @@ class _ListUserPageState extends State<ListUserPage> {
           return const Center(child: CircularProgressIndicator());
         }
         final users = snapshot.data ?? <ChatUser>[];
+        _usersById = {for (final user in users) user.id: user};
         final filteredUsers = users.where((user) {
           final q = _searchQuery.trim().toLowerCase();
           if (q.isEmpty) return true;
@@ -520,7 +654,9 @@ class _ListUserPageState extends State<ListUserPage> {
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                   child: Center(
-                    child: Text('Aucun utilisateur ne correspond a votre recherche.'),
+                    child: Text(
+                      'Aucun utilisateur ne correspond a votre recherche.',
+                    ),
                   ),
                 ),
               for (int i = 0; i < filteredUsers.length; i++)
@@ -544,8 +680,12 @@ class _ListUserPageState extends State<ListUserPage> {
     return UserTile(
       key: tileKey,
       text: userData.username,
-      subtitle: userData.status.toLowerCase() == 'online' ? 'En ligne' : 'Hors ligne',
+      subtitle: userData.status.toLowerCase() == 'online'
+          ? 'En ligne'
+          : 'Hors ligne',
       photoUrl: userData.photoUrl,
+      unreadCount: _unreadCounts[userData.id] ?? 0,
+      onVoiceCall: () => _startVoiceCall(userData),
       onAddFriend: () => _sendFriendRequest(userData),
       onBlockUser: () => _blockUser(userData),
       onTap: () {
@@ -560,7 +700,13 @@ class _ListUserPageState extends State<ListUserPage> {
               receiverLastSeen: userData.lastSeen,
             ),
           ),
-        );
+        ).then((_) {
+          if (!mounted) return;
+          setState(() {
+            _unreadCounts[userData.id] = 0;
+          });
+          _refreshUnreadCounts();
+        });
       },
     );
   }

@@ -79,6 +79,8 @@ class ChatServices {
       StreamController<Map<String, dynamic>>.broadcast();
   final StreamController<Map<String, bool>> _typingController =
       StreamController<Map<String, bool>>.broadcast();
+  final StreamController<Map<String, dynamic>> _callEventsController =
+      StreamController<Map<String, dynamic>>.broadcast();
 
   io.Socket? _socket;
   String? _currentUserId;
@@ -91,6 +93,7 @@ class ChatServices {
   String? get currentUserId => _currentUserId;
   Stream<Map<String, dynamic>> get appNotifications =>
       _appNotificationsController.stream;
+  Stream<Map<String, dynamic>> get callEvents => _callEventsController.stream;
 
   Future<void> ensureSocketReady() async {
     try {
@@ -205,6 +208,41 @@ class ChatServices {
       _typingController.add(Map<String, bool>.from(_typingByUser));
     });
 
+    _socket!.on('call_invite', (data) {
+      final payload = _toMap(data);
+      _callEventsController.add({'event': 'call_invite', ...payload});
+    });
+
+    _socket!.on('call_accept', (data) {
+      final payload = _toMap(data);
+      _callEventsController.add({'event': 'call_accept', ...payload});
+    });
+
+    _socket!.on('call_reject', (data) {
+      final payload = _toMap(data);
+      _callEventsController.add({'event': 'call_reject', ...payload});
+    });
+
+    _socket!.on('call_end', (data) {
+      final payload = _toMap(data);
+      _callEventsController.add({'event': 'call_end', ...payload});
+    });
+
+    _socket!.on('webrtc_offer', (data) {
+      final payload = _toMap(data);
+      _callEventsController.add({'event': 'webrtc_offer', ...payload});
+    });
+
+    _socket!.on('webrtc_answer', (data) {
+      final payload = _toMap(data);
+      _callEventsController.add({'event': 'webrtc_answer', ...payload});
+    });
+
+    _socket!.on('webrtc_ice', (data) {
+      final payload = _toMap(data);
+      _callEventsController.add({'event': 'webrtc_ice', ...payload});
+    });
+
     _socket!.on('item_created', (data) {
       final payload = _toMap(data);
       final item = _toMap(payload['item']);
@@ -239,6 +277,19 @@ class ChatServices {
     }
 
     return users;
+  }
+
+  Future<Map<String, int>> getUnreadCounts() async {
+    await _initSocket();
+    final response = await _apiService.dio.get('/messages/unread-counts');
+    final payload = _toMap(response.data);
+    final rawCounts = _toMap(payload['counts']);
+
+    final counts = <String, int>{};
+    for (final entry in rawCounts.entries) {
+      counts[entry.key] = int.tryParse(entry.value.toString()) ?? 0;
+    }
+    return counts;
   }
 
   Future<List<ChatMessage>> loadMessages(String withUserId) async {
@@ -295,6 +346,82 @@ class ChatServices {
   Future<void> sendTypingStop(String toUserId) async {
     await _initSocket();
     _socket?.emit('typing_stop', {'toUserId': toUserId});
+  }
+
+  Future<void> sendCallInvite({
+    required String toUserId,
+    required String callId,
+    required String callerName,
+  }) async {
+    await _initSocket();
+    _socket?.emit('call_invite', {
+      'toUserId': toUserId,
+      'callId': callId,
+      'callerName': callerName,
+    });
+  }
+
+  Future<void> sendCallAccept({
+    required String toUserId,
+    required String callId,
+  }) async {
+    await _initSocket();
+    _socket?.emit('call_accept', {'toUserId': toUserId, 'callId': callId});
+  }
+
+  Future<void> sendCallReject({
+    required String toUserId,
+    required String callId,
+  }) async {
+    await _initSocket();
+    _socket?.emit('call_reject', {'toUserId': toUserId, 'callId': callId});
+  }
+
+  Future<void> sendCallEnd({
+    required String toUserId,
+    required String callId,
+  }) async {
+    await _initSocket();
+    _socket?.emit('call_end', {'toUserId': toUserId, 'callId': callId});
+  }
+
+  Future<void> sendWebRtcOffer({
+    required String toUserId,
+    required String callId,
+    required Map<String, dynamic> sdp,
+  }) async {
+    await _initSocket();
+    _socket?.emit('webrtc_offer', {
+      'toUserId': toUserId,
+      'callId': callId,
+      'sdp': sdp,
+    });
+  }
+
+  Future<void> sendWebRtcAnswer({
+    required String toUserId,
+    required String callId,
+    required Map<String, dynamic> sdp,
+  }) async {
+    await _initSocket();
+    _socket?.emit('webrtc_answer', {
+      'toUserId': toUserId,
+      'callId': callId,
+      'sdp': sdp,
+    });
+  }
+
+  Future<void> sendWebRtcIce({
+    required String toUserId,
+    required String callId,
+    required Map<String, dynamic> candidate,
+  }) async {
+    await _initSocket();
+    _socket?.emit('webrtc_ice', {
+      'toUserId': toUserId,
+      'callId': callId,
+      'candidate': candidate,
+    });
   }
 
   Future<void> markAsRead(String messageId) async {

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ivox/features/chat/presentation/voice_call_page.dart';
 import 'package:ivox/features/chat/services/chat_services.dart';
 
 class ChatPage extends StatefulWidget {
@@ -32,11 +35,13 @@ class _ChatPageState extends State<ChatPage> {
   late final Stream<String> _statusStream;
   late final Stream<DateTime?> _lastSeenStream;
   late final Stream<bool> _typingStream;
+  StreamSubscription<Map<String, dynamic>>? _callSignalSubscription;
   final Set<String> _readRequested = <String>{};
   String? _currentUserId;
   String? _error;
   bool _typingSent = false;
   bool _isSending = false;
+  bool _isCallDialogOpen = false;
 
   @override
   void initState() {
@@ -46,6 +51,88 @@ class _ChatPageState extends State<ChatPage> {
     _lastSeenStream = _chatService.userLastSeenStream(widget.receiverID);
     _typingStream = _chatService.userTypingStream(widget.receiverID);
     _bootstrap();
+
+    _callSignalSubscription = _chatService.callEvents.listen((payload) {
+      final event = (payload['event'] ?? '').toString();
+      if (event != 'call_invite' || !mounted || _isCallDialogOpen) return;
+
+      final fromUserId = (payload['fromUserId'] ?? '').toString();
+      final callId = (payload['callId'] ?? '').toString();
+      if (fromUserId != widget.receiverID || callId.isEmpty) return;
+
+      _showIncomingCallDialog(
+        callId: callId,
+        callerName: (payload['callerName'] ?? widget.receiverEmail).toString(),
+      );
+    });
+  }
+
+  Future<void> _showIncomingCallDialog({
+    required String callId,
+    required String callerName,
+  }) async {
+    _isCallDialogOpen = true;
+
+    try {
+      final accepted = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Appel entrant'),
+            content: Text('Appel vocal de $callerName'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Refuser'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Accepter'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (!mounted) return;
+
+      if (accepted == true) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => VoiceCallPage(
+              receiverId: widget.receiverID,
+              receiverName: widget.receiverEmail,
+              receiverPhotoUrl: widget.receiverPhotoUrl,
+              isIncoming: true,
+              callId: callId,
+            ),
+          ),
+        );
+      } else {
+        await _chatService.sendCallReject(
+          toUserId: widget.receiverID,
+          callId: callId,
+        );
+      }
+    } finally {
+      _isCallDialogOpen = false;
+    }
+  }
+
+  Future<void> _startVoiceCall() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VoiceCallPage(
+          receiverId: widget.receiverID,
+          receiverName: widget.receiverEmail,
+          receiverPhotoUrl: widget.receiverPhotoUrl,
+          isIncoming: false,
+        ),
+      ),
+    );
   }
 
   String _formatLastSeen(DateTime? dateTime) {
@@ -136,6 +223,7 @@ class _ChatPageState extends State<ChatPage> {
     if (_typingSent) {
       _chatService.sendTypingStop(widget.receiverID);
     }
+    _callSignalSubscription?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
@@ -216,6 +304,13 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Appel vocal',
+            onPressed: _startVoiceCall,
+            icon: const Icon(Icons.call_rounded),
+          ),
+        ],
       ),
       body: Column(
         children: [

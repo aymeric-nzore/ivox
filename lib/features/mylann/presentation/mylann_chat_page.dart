@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +8,7 @@ import 'package:ivox/features/mylann/services/mylann_service.dart';
 import 'package:ivox/shared/walkthrough/app_walkthrough_controller.dart';
 import 'package:ivox/shared/walkthrough/mascot_walkthrough_overlay.dart';
 import 'package:ivox/shared/widgets/main_bottom_nav_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MylannChatPage extends StatefulWidget {
   final int currentIndex;
@@ -30,6 +33,7 @@ class _MylannChatPageState extends State<MylannChatPage> {
 
   final List<_ChatSession> _sessions = <_ChatSession>[];
   late String _activeSessionId;
+  bool _isHydrating = false;
 
   bool _isSending = false;
 
@@ -42,6 +46,69 @@ class _MylannChatPageState extends State<MylannChatPage> {
     final firstSession = _buildSession();
     _sessions.add(firstSession);
     _activeSessionId = firstSession.id;
+    _restoreSessions();
+  }
+
+  String _storageKey(String userId) => 'mylann.sessions.$userId';
+
+  Future<void> _restoreSessions() async {
+    if (_isHydrating) return;
+    _isHydrating = true;
+
+    try {
+      final userId = AuthService().getUser()?.uid ?? 'guest';
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_storageKey(userId));
+      if (raw == null || raw.isEmpty) return;
+
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return;
+
+      final rawSessions = decoded['sessions'];
+      if (rawSessions is! List) return;
+
+      final restored = rawSessions
+          .whereType<Map>()
+          .map(
+            (item) => _ChatSession.fromJson(
+              item.map((k, v) => MapEntry(k.toString(), v)),
+            ),
+          )
+          .where((session) => session.messages.isNotEmpty)
+          .toList();
+
+      if (restored.isEmpty) return;
+
+      final restoredActive = (decoded['activeSessionId'] ?? '').toString();
+      final hasActive = restored.any((s) => s.id == restoredActive);
+
+      if (!mounted) return;
+      setState(() {
+        _sessions
+          ..clear()
+          ..addAll(restored);
+        _activeSessionId = hasActive ? restoredActive : restored.first.id;
+      });
+      _scrollToBottom();
+    } catch (_) {
+      // Ignore hydration errors to keep chat available.
+    } finally {
+      _isHydrating = false;
+    }
+  }
+
+  Future<void> _persistSessions() async {
+    try {
+      final userId = AuthService().getUser()?.uid ?? 'guest';
+      final prefs = await SharedPreferences.getInstance();
+      final payload = {
+        'activeSessionId': _activeSessionId,
+        'sessions': _sessions.map((session) => session.toJson()).toList(),
+      };
+      await prefs.setString(_storageKey(userId), jsonEncode(payload));
+    } catch (_) {
+      // Best-effort persistence.
+    }
   }
 
   _ChatSession _buildSession() {
@@ -67,6 +134,7 @@ class _MylannChatPageState extends State<MylannChatPage> {
       _activeSessionId = session.id;
       _messageController.clear();
     });
+    _persistSessions();
     Navigator.of(context).maybePop();
   }
 
@@ -78,6 +146,7 @@ class _MylannChatPageState extends State<MylannChatPage> {
     setState(() {
       _activeSessionId = sessionId;
     });
+    _persistSessions();
     Navigator.of(context).maybePop();
   }
 
@@ -103,6 +172,7 @@ class _MylannChatPageState extends State<MylannChatPage> {
       _isSending = true;
       _messageController.clear();
     });
+    _persistSessions();
     _scrollToBottom();
 
     final userId = AuthService().getUser()?.uid ?? 'user';
@@ -116,6 +186,7 @@ class _MylannChatPageState extends State<MylannChatPage> {
         session.messages.add(_UiMessage(text: reply, fromUser: false));
         session.updatedAt = DateTime.now();
       });
+      _persistSessions();
     } on DioException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -128,6 +199,7 @@ class _MylannChatPageState extends State<MylannChatPage> {
           ),
         );
       });
+      _persistSessions();
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -139,11 +211,13 @@ class _MylannChatPageState extends State<MylannChatPage> {
           ),
         );
       });
+      _persistSessions();
     } finally {
       if (!mounted) return;
       setState(() {
         _isSending = false;
       });
+      _persistSessions();
       _scrollToBottom();
     }
   }
@@ -431,6 +505,39 @@ class _ChatSession {
     required this.updatedAt,
     required this.messages,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'updatedAt': updatedAt.toIso8601String(),
+      'messages': messages.map((message) => message.toJson()).toList(),
+    };
+  }
+
+  factory _ChatSession.fromJson(Map<String, dynamic> json) {
+    final rawMessages = json['messages'];
+    final messages = rawMessages is List
+        ? rawMessages
+              .whereType<Map>()
+              .map(
+                (item) => _UiMessage.fromJson(
+                  item.map((k, v) => MapEntry(k.toString(), v)),
+                ),
+              )
+              .toList()
+        : <_UiMessage>[];
+
+    return _ChatSession(
+      id: (json['id'] ?? DateTime.now().microsecondsSinceEpoch.toString())
+          .toString(),
+      title: (json['title'] ?? 'Nouvelle session').toString(),
+      updatedAt:
+          DateTime.tryParse((json['updatedAt'] ?? '').toString()) ??
+          DateTime.now(),
+      messages: messages,
+    );
+  }
 }
 
 class _UiMessage {
@@ -443,6 +550,18 @@ class _UiMessage {
     required this.fromUser,
     this.isError = false,
   });
+
+  Map<String, dynamic> toJson() {
+    return {'text': text, 'fromUser': fromUser, 'isError': isError};
+  }
+
+  factory _UiMessage.fromJson(Map<String, dynamic> json) {
+    return _UiMessage(
+      text: (json['text'] ?? '').toString(),
+      fromUser: json['fromUser'] == true,
+      isError: json['isError'] == true,
+    );
+  }
 }
 
 class _TypingBubble extends StatelessWidget {
